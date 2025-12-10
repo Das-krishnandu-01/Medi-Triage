@@ -246,16 +246,17 @@ const SymptomChecker = ({ initialSymptom, onBack }) => {
                 <h3 className="text-base font-medium text-slate-800 dark:text-slate-200 mb-4">
                   {q.text}
                 </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-2">
                   {q.options.map((opt) => (
                     <button
                       key={opt.key}
                       onClick={() => handleAnswer(q.id, opt.key)}
                       className={`
-                        px-4 py-3 rounded-lg text-sm font-medium text-left transition-all
+                        w-full px-4 py-3 rounded-lg text-sm font-medium text-left transition-all
+                        border shadow-sm hover:shadow-md
                         ${userAnswers[q.id] === opt.key
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 ring-2 ring-blue-600 ring-offset-2 ring-offset-white dark:ring-offset-slate-900'
-                          : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/25 ring-2 ring-blue-600 ring-offset-2 ring-offset-white dark:ring-offset-slate-900'
+                          : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500'
                         }
                       `}
                     >
