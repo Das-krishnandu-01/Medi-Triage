@@ -1,0 +1,111 @@
+id,symptoms_text,age,fever,chest_pain,duration_days,specialty
+1,"severe chest pain while walking and shortness of breath",52,no,yes,1,Cardiology
+2,"pressure-like chest discomfort radiating to left arm",60,no,yes,2,Cardiology
+3,"palpitations and dizziness with mild chest tightness",41,no,yes,3,Cardiology
+4,"shortness of breath when climbing stairs and chest heaviness",55,no,yes,7,Cardiology
+5,"sudden chest pain with sweating and nausea",49,no,yes,1,Cardiology
+6,"high blood pressure and occasional chest discomfort",58,no,yes,14,Cardiology
+7,"chest pain at night when lying flat and breathlessness",62,no,yes,10,Cardiology
+8,"heart racing, anxiety, slight chest pressure",33,no,yes,2,Cardiology
+9,"chest tightness after small exertion and fatigue",47,no,yes,5,Cardiology
+10,"chest pain with history of heart disease in family",50,no,yes,4,Cardiology
+11,"itchy red rash on both arms for three days",24,no,no,3,Dermatology
+12,"dry scaly patches on elbows and knees getting worse",29,no,no,30,Dermatology
+13,"small fluid-filled blisters on lips and chin",19,no,no,5,Dermatology
+14,"dark spots on face after sun exposure",32,no,no,20,Dermatology
+15,"white flaky skin on scalp with mild itching",26,no,no,14,Dermatology
+16,"painful pus-filled pimples on cheeks and forehead",21,no,no,10,Dermatology
+17,"itchy rash between fingers after using new soap",27,no,no,4,Dermatology
+18,"red circular rash with clear center on leg",34,no,no,7,Dermatology
+19,"burning rash with small blisters after wearing metal jewelry",30,no,no,2,Dermatology
+20,"rough thickened skin on heels and soles",40,no,no,60,Dermatology
+21,"knee pain while walking after twisting injury",36,no,no,5,Orthopedics
+22,"chronic lower back pain worsens on bending forward",45,no,no,90,Orthopedics
+23,"shoulder pain when lifting arm above head",39,no,no,21,Orthopedics
+24,"swelling and pain in ankle after fall",28,no,no,2,Orthopedics
+25,"stiffness in fingers in the morning with joint pain",50,no,no,180,Orthopedics
+26,"sharp pain in hip while standing from sitting position",48,no,no,14,Orthopedics
+27,"neck pain after long hours at computer",29,no,no,30,Orthopedics
+28,"recurrent knee swelling after playing football",22,no,no,10,Orthopedics
+29,"back pain radiating down leg with tingling",42,no,no,20,Orthopedics
+30,"difficulty gripping objects due to wrist pain",33,no,no,15,Orthopedics
+31,"missed period and lower abdominal cramps",26,no,no,7,Gynecology
+32,"heavy menstrual bleeding with clots",29,no,no,5,Gynecology
+33,"severe pain during periods and nausea",24,no,no,3,Gynecology
+34,"foul-smelling vaginal discharge with itching",30,no,no,10,Gynecology
+35,"bleeding between periods and pelvic discomfort",35,no,no,14,Gynecology
+36,"positive pregnancy test and mild lower abdominal pain",27,no,no,4,Gynecology
+37,"hot flashes and irregular periods",45,no,no,120,Gynecology
+38,"painful intercourse and chronic pelvic pain",32,no,no,60,Gynecology
+39,"sudden severe lower abdominal pain on one side",23,no,no,1,Gynecology
+40,"breast lump noticed with mild discomfort",38,no,no,14,Gynecology
+41,"high fever with cough and thick yellow sputum",31,yes,no,3,General Medicine
+42,"sore throat, mild fever and body ache",22,yes,no,4,General Medicine
+43,"vomiting and loose stools after eating outside food",27,yes,no,2,General Medicine
+44,"low-grade fever with headache and fatigue",35,yes,no,5,General Medicine
+45,"burning sensation while passing urine and mild fever",29,yes,no,3,General Medicine
+46,"runny nose, sneezing and mild cough",19,no,no,5,General Medicine
+47,"loss of appetite, weight loss and tiredness",40,no,no,60,General Medicine
+48,"mild fever with joint pains after mosquito bites",33,yes,no,6,General Medicine
+49,"frequent headaches with stress and poor sleep",28,no,no,30,General Medicine
+50,"dizziness when standing up quickly, no chest pain",37,no,no,7,General Medicine
+51,"sudden severe headache with vision disturbance",44,no,no,1,Neurology
+52,"recurrent headaches on one side with nausea and light sensitivity",27,no,no,2,Neurology
+53,"tingling and numbness in hands and feet",39,no,no,30,Neurology
+54,"episodes of loss of consciousness for few seconds",23,no,no,10,Neurology
+55,"difficulty speaking clearly with weakness on one side of body",61,no,no,1,Neurology
+56,"persistent hand tremors and slowness of movement",58,no,no,180,Neurology
+57,"burning sensation in legs at night and imbalance while walking",52,no,no,90,Neurology
+58,"sudden inability to move arm and slurred speech",63,no,no,1,Neurology
+59,"facial drooping on one side and trouble closing eye",33,no,no,3,Neurology
+60,"chronic headaches worse in the morning with vomiting",36,no,no,20,Neurology
+61,"child with high fever and cough for three days",5,yes,no,3,Pediatrics
+62,"child with recurrent loose stools and mild dehydration",3,yes,no,2,Pediatrics
+63,"itchy rash all over body after eating new food in child",7,no,no,1,Pediatrics
+64,"child refusing to eat with sore throat and fever",8,yes,no,4,Pediatrics
+65,"frequent wheezing and cough in child at night",6,no,no,30,Pediatrics
+66,"child with ear pain and mild fever after cold",4,yes,no,2,Pediatrics
+67,"poor weight gain and frequent infections in child",2,no,no,180,Pediatrics
+68,"child with abdominal pain around navel and vomiting",9,no,no,2,Pediatrics
+69,"infant with persistent crying and pulling at ears",1,yes,no,1,Pediatrics
+70,"child with high fever, rash and red eyes",10,yes,no,4,Pediatrics
+71,"sad mood, loss of interest and poor sleep for weeks",29,no,no,30,Psychiatry
+72,"frequent panic attacks with palpitations and fear of dying",26,no,yes,90,Psychiatry
+73,"obsessive hand washing and repeating behaviours",24,no,no,180,Psychiatry
+74,"thoughts of self-harm and feeling hopeless",32,no,no,60,Psychiatry
+75,"hearing voices that others do not hear",35,no,no,120,Psychiatry
+76,"sudden mood swings with periods of high energy and low mood",30,no,no,365,Psychiatry
+77,"difficulty concentrating and restlessness since childhood",21,no,no,365,Psychiatry
+78,"fear of crowded places and avoiding social gatherings",27,no,no,200,Psychiatry
+79,"trouble sleeping, early morning waking and anxiety",34,no,no,45,Psychiatry
+80,"persistent worrying about health despite normal tests",40,no,no,120,Psychiatry
+81,"burning chest sensation after meals and sour taste in mouth",34,no,yes,30,General Medicine
+82,"frequent urination, increased thirst and weight loss",45,no,no,60,General Medicine
+83,"swelling of legs in evening and breathlessness on lying down",56,no,no,90,Cardiology
+84,"joint pain in multiple small joints with morning stiffness",49,no,no,120,Orthopedics
+85,"red scaly rash on scalp and behind ears",31,no,no,45,Dermatology
+86,"painful ulcers in mouth recurring every few months",28,no,no,7,General Medicine
+87,"tingling in fingers at night relieved by shaking hands",37,no,no,60,Orthopedics
+88,"yellowing of eyes and dark urine with fatigue",33,no,no,10,General Medicine
+89,"sudden severe testicular pain and swelling",20,no,no,1,General Medicine
+90,"increasing forgetfulness and difficulty managing daily tasks",72,no,no,365,Neurology
+91,"burning while urinating with lower abdominal discomfort",29,yes,no,4,General Medicine
+92,"lump in neck increasing in size over months",42,no,no,180,General Medicine
+93,"persistent cough for more than three weeks and weight loss",48,no,no,30,General Medicine
+94,"long-standing diabetes with numbness in feet",55,no,no,365,General Medicine
+95,"swelling and pain in big toe joint, worse at night",50,no,no,10,Orthopedics
+96,"nail thickening and discoloration on toes",41,no,no,120,Dermatology
+97,"localized hair loss patch on scalp",23,no,no,60,Dermatology
+98,"severe itching worse at night especially between fingers",29,no,no,21,Dermatology
+99,"ankle pain after running long distance, worse in morning",32,no,no,7,Orthopedics
+100,"pain in heel when taking first steps in morning",38,no,no,30,Orthopedics
+101,"pelvic pain and pain during urination in pregnant woman",27,no,no,5,Gynecology
+102,"pregnant woman with swelling in feet and headache",30,no,no,7,Gynecology
+103,"irregular periods for many months with weight gain and acne",24,no,no,180,Gynecology
+104,"nipple discharge with breast tenderness",36,no,no,14,Gynecology
+105,"child with noisy breathing and barking cough",3,yes,no,2,Pediatrics
+106,"child with itchy eyes, sneezing and clear nasal discharge",9,no,no,10,Pediatrics
+107,"electric shock-like pain on one side of face",46,no,no,30,Neurology
+108,"sudden loss of vision in one eye with no pain",54,no,no,1,Neurology
+109,"anxiety in social situations with sweating and palpitations",25,no,yes,60,Psychiatry
+110,"fear of contamination and cleaning objects repeatedly",31,no,no,240,Psychiatry
