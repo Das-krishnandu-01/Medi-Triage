@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Medi Triage — Gmail Signup</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
   :root{ --bg:#0f1724; --muted:#9aa7c0; --danger:#ef4444; --accent1: #7b61ff; --accent2: #06f; }
   html,body{height:100%; margin:0; background:
@@ -12,7 +13,7 @@
   html.light-mode, html.light-mode body{ --bg: #f7fafc; --muted: #475569; --danger: #dc2626; }
   html.light-mode body{ background: linear-gradient(180deg,#ffffff 0%, #f1f5f9 100%); color:#0b1220; }
 
-  .app{min-height:100vh; display:flex; align-items:center; justify-content:flex-start; padding:28px; padding-left:80px;}
+  .app{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;}
   .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.05); border-radius:18px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); padding:22px; max-width:1100px; width:100%; position:relative;}
 
   .brand-row{ display:flex; gap:12px; align-items:center; margin-bottom:8px; }
@@ -81,7 +82,17 @@
 
   .field{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
   input, textarea, select{ background:transparent; border:1px solid rgba(255,255,255,0.04); padding:12px 14px; border-radius:12px; color:#e6eef8; outline:none; font-size:14px; }
+  select { background: linear-gradient(180deg, rgba(20,30,50,0.8), rgba(15,20,40,0.8)); color: #ffffff; }
+  select option { background: #0f1724; color: #ffffff; }
   textarea{ resize:vertical; min-height:80px; }
+  
+  /* Clinic Location Autocomplete Styles */
+  #ds-location-container { position: relative; }
+  #clinic-suggestions-dropdown { background-color: #0f1724; border: 1px solid rgba(255,255,255,0.1); border-radius: 0 0 12px 12px; color: #e6eef8; scrollbar-width: thin; scrollbar-color: rgba(123,97,255,0.3) transparent; }
+  #clinic-suggestions-dropdown::-webkit-scrollbar { width: 6px; }
+  #clinic-suggestions-dropdown::-webkit-scrollbar-track { background: transparent; }
+  #clinic-suggestions-dropdown::-webkit-scrollbar-thumb { background: rgba(123,97,255,0.3); border-radius: 3px; }
+  .clinic-suggestion:hover { background-color: rgba(123,97,255,0.2) !important; }
   .btn{ padding:10px 14px; border-radius:12px; border:none; cursor:pointer; font-weight:600; background:#0f1b2a; color:#e6eef8; }
   .btn.primary{ background: linear-gradient(90deg,var(--accent2),var(--accent1)); color:white; box-shadow:0 8px 30px rgba(107,72,255,0.12); }
   .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); }
@@ -105,8 +116,284 @@
   .modal-backdrop{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.6); z-index:1200; }
   .modal{ background:#061226; border-radius:12px; padding:18px; width:420px; max-width:92%; border:1px solid rgba(255,255,255,0.04); box-shadow:0 18px 60px rgba(0,0,0,0.6); }
   .error-text{ color:var(--danger); font-weight:700; text-align:center; margin-top:8px; }
+  .success-text{ color:#4ade80; font-weight:700; text-align:center; margin-top:8px; }
 
   .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:32px; background:linear-gradient(90deg,var(--accent2),var(--accent1)); padding:10px 16px; border-radius:12px; color:white; box-shadow:0 10px 40px rgba(11,12,30,0.6); display:none; z-index:1000; }
+
+  /* Local alert modal for MCQ validation */
+  .alert-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); background: rgba(0,0,0,0.4); z-index: 9999; margin: 0; }
+  .alert-box { background: #1e1e1e; padding: 28px 36px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center; min-width: 300px; max-width: 400px; border: 1px solid rgba(255,255,255,0.08); margin: 0 auto; position: relative; }
+  .alert-box p { margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #e6eef8; }
+  .alert-box button { margin-top: 8px; padding: 10px 28px; border-radius: 8px; background: linear-gradient(90deg, var(--accent2), var(--accent1)); color: white; border: none; cursor: pointer; font-weight: 600; box-shadow: 0 4px 12px rgba(107, 72, 255, 0.3); transition: all 0.2s ease; }
+  .alert-box button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(107, 72, 255, 0.4); }
+
+  /* ---------- Doctor Quick-View Modal ---------- */
+  .doctor-quick-modal-overlay { 
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    width: 100%; height: 100%; 
+    display: flex; align-items: center; justify-content: center; 
+    -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); 
+    background: rgba(0,0,0,0.5); z-index: 10000; margin: 0; 
+  }
+  .doctor-quick-modal { 
+    background: linear-gradient(180deg, rgba(30,30,30,0.98), rgba(20,20,20,0.98)); 
+    padding: 0; border-radius: 16px; 
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7); 
+    width: 520px; max-width: 94vw; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    position: relative; max-height: 90vh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .doctor-quick-modal-header { 
+    display: flex; gap: 14px; align-items: center; 
+    padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); 
+    background: rgba(0,0,0,0.2);
+  }
+  .doctor-quick-modal-avatar { 
+    width: 64px; height: 64px; border-radius: 12px; 
+    background: linear-gradient(135deg, var(--accent1), var(--accent2)); 
+    display: flex; align-items: center; justify-content: center; 
+    font-weight: 800; font-size: 22px; color: white; 
+    flex-shrink: 0;
+  }
+  .doctor-quick-modal-title { flex: 1; }
+  .doctor-quick-modal-title h3 { margin: 0 0 4px 0; font-size: 20px; font-weight: 800; }
+  .doctor-quick-modal-title .specialty-badge { 
+    display: inline-block; padding: 4px 10px; border-radius: 6px; 
+    font-size: 12px; font-weight: 600; 
+    background: rgba(123,97,255,0.15); color: var(--accent1); 
+  }
+  .doctor-quick-modal-close { 
+    background: transparent; border: none; color: var(--muted); 
+    font-size: 24px; cursor: pointer; padding: 4px 8px; 
+    transition: color 0.2s ease;
+  }
+  .doctor-quick-modal-close:hover { color: #fff; }
+  .doctor-quick-modal-body { 
+    padding: 20px; overflow-y: auto; flex: 1;
+  }
+  .doctor-quick-modal-section { margin-bottom: 18px; }
+  .doctor-quick-modal-section h4 { 
+    margin: 0 0 10px 0; font-size: 14px; font-weight: 700; 
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .doctor-quick-map-preview { 
+    width: 100%; height: 140px; border-radius: 10px; 
+    background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); 
+    overflow: hidden; position: relative;
+  }
+  .doctor-quick-map-preview iframe { 
+    width: 100%; height: 100%; border: none; 
+  }
+  .doctor-quick-map-link { 
+    display: flex; align-items: center; justify-content: center; 
+    padding: 12px; background: rgba(123,97,255,0.08); 
+    border-radius: 10px; gap: 8px; text-decoration: none; 
+    color: var(--accent1); font-weight: 600; font-size: 14px;
+    border: 1px solid rgba(123,97,255,0.2);
+    transition: all 0.2s ease;
+  }
+  .doctor-quick-map-link:hover { 
+    background: rgba(123,97,255,0.15); 
+    transform: translateY(-2px);
+  }
+  .doctor-quick-clinic-details { 
+    display: flex; flex-direction: column; gap: 10px; 
+  }
+  .doctor-quick-detail-row { 
+    display: flex; align-items: flex-start; gap: 10px; 
+    padding: 10px; background: rgba(255,255,255,0.02); 
+    border-radius: 8px; border: 1px solid rgba(255,255,255,0.04);
+  }
+  .doctor-quick-detail-row .icon { 
+    font-size: 16px; flex-shrink: 0; 
+  }
+  .doctor-quick-detail-row .content { flex: 1; }
+  .doctor-quick-detail-row .content .label { 
+    font-size: 12px; color: var(--muted); margin-bottom: 2px; 
+  }
+  .doctor-quick-detail-row .content .value { 
+    font-size: 14px; font-weight: 600; 
+  }
+  .doctor-quick-detail-row a { 
+    color: var(--accent1); text-decoration: none; 
+  }
+  .doctor-quick-detail-row a:hover { text-decoration: underline; }
+  .doctor-quick-booking-form { display: flex; flex-direction: column; gap: 12px; }
+  .doctor-quick-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .doctor-quick-modal-footer { 
+    padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.08); 
+    display: flex; gap: 10px; justify-content: flex-end; 
+    background: rgba(0,0,0,0.2);
+  }
+  .doctor-quick-error { 
+    color: var(--danger); font-size: 13px; font-weight: 600; 
+    margin-top: 8px; padding: 8px 12px; 
+    background: rgba(239,68,68,0.1); border-radius: 6px; 
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+  @media (max-width: 580px) {
+    .doctor-quick-modal { width: 96vw; max-height: 95vh; }
+    .doctor-quick-form-row { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- New Booking Modal ---------- */
+  .booking-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 11000;
+    margin: 0;
+  }
+  .booking-modal {
+    background: linear-gradient(180deg, rgba(30, 30, 30, 0.98), rgba(20, 20, 20, 0.98));
+    padding: 0;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    width: 600px;
+    max-width: 95vw;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .booking-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .booking-modal-header-content {
+    flex: 1;
+  }
+  .booking-modal-header h3 {
+    margin: 0 0 6px 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #e6eef8;
+  }
+  .booking-modal-specialty {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(123, 97, 255, 0.15);
+    color: var(--accent1);
+    margin-bottom: 8px;
+  }
+  .booking-modal-address {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .booking-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .booking-modal-close:hover {
+    color: #fff;
+  }
+  .booking-modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .booking-modal-section {
+    margin-bottom: 20px;
+  }
+  .booking-modal-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .booking-map-container {
+    width: 100%;
+    height: 200px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    position: relative;
+  }
+  .booking-map-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+  .booking-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .booking-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .booking-modal-footer {
+    padding: 20px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.2);
+  }
+  .booking-error {
+    color: var(--danger);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    padding: 10px 14px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+  @media (max-width: 640px) {
+    .booking-modal {
+      width: 96vw;
+      max-height: 95vh;
+    }
+    .booking-form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Severity level badges */
+  .severity-critical { color: #ef4444; font-weight: 800; }
+  .severity-high { color: #f97316; font-weight: 800; }
+  .severity-moderate { color: #eab308; font-weight: 800; }
+  .severity-low { color: #10b981; font-weight: 800; }
 
   @media (max-width:880px){
     .landing{ grid-template-columns:1fr; }
@@ -163,22 +450,17 @@
 
       <!-- top-controls (kept as in your file) -->
       <div class="top-controls" aria-hidden="false" id="topControls">
-        <button class="ctrl-btn" id="ctrl-blog" title="Open Health Blog / quick advice">
-          <span style="font-size:16px; line-height:1;">📝</span>
-          <span class="label">Health Blog</span>
-        </button>
-
-        <button class="ctrl-btn" id="ctrl-theme" title="Toggle dark / light">
+        <button type="button" class="ctrl-btn" id="ctrl-theme" title="Toggle dark / light">
           <span style="font-size:16px; line-height:1;">🌙</span>
           <span class="label">Theme</span>
         </button>
 
-        <button class="ctrl-btn" id="ctrl-sub" title="Subscribe">
+        <button type="button" class="ctrl-btn" id="ctrl-sub" title="Subscribe">
           <span style="font-size:16px; line-height:1;">🔔</span>
           <span class="label">Subscribe</span>
         </button>
 
-        <button class="ctrl-btn doctor" id="ctrl-profile" title="Doctor profile (click to sign in)">
+        <button type="button" class="ctrl-btn doctor" id="ctrl-profile" title="Doctor profile (click to sign in)">
           <span style="font-size:16px; line-height:1;">👨‍⚕️</span>
           <span class="label">Doctor</span>
         </button>
@@ -188,7 +470,7 @@
         <div class="logo"><img src="https://image2url.com/images/1765345348431-ccebf22a-9a7e-41c3-af30-34f4c06da4d8.jpeg" alt="logo" style="width:100%;height:100%;object-fit:cover;border-radius:12px;"/></div>
         <div>
           <h1 id="appTitle">Medi Triage</h1>
-          <div class="tiny"></div>
+          <div class="tiny">Gmail signup added</div>
         </div>
       </div>
 
@@ -203,9 +485,9 @@
 
           <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
             <div style="display:flex;gap:8px;">
-              <button class="btn ghost" id="landing-blog-mini">Blog</button>
-              <button class="btn ghost" id="landing-sub-mini">Subscribe</button>
-              <button class="btn ghost" id="landing-doctor-mini" title="Doctor login">I am a Doctor</button>
+              <button type="button" class="btn ghost" id="landing-blog-mini">Blog</button>
+              <button type="button" class="btn ghost" id="landing-sub-mini">Subscribe</button>
+              <button type="button" class="btn ghost" id="landing-doctor-mini" title="Doctor login">I am a Doctor</button>
             </div>
             <div style="margin-top:8px;color:var(--muted);font-size:13px;">
               Clinician features are hidden from the main patient flow.
@@ -221,24 +503,50 @@
           <h2>Patient — Create Account</h2>
           <p class="tiny">Quick signup — you'll go to Patient Dashboard after Create & Enter</p>
         </div>
-        <div style="margin-top:12px;">
-          <div class="field"><label>Full name <input id="ps-name" type="text" placeholder="e.g., Pritam Sahoo"></label></div>
-          <div class="field"><label>Username <input id="ps-username" type="text" placeholder="choose username (optional)"></label></div>
-          <div class="field"><label>Password <input id="ps-password" type="password" placeholder="password (min 6 chars)"></label></div>
+        <div style="margin-top:12px; display:flex; flex-direction:column; align-items:center;">
+          <div style="width:100%; max-width:420px;">
+            <div class="field"><label>Full name <input id="ps-name" type="text" placeholder="e.g., Pritam Sahoo"></label></div>
+            <div class="field"><label>Username <input id="ps-username" type="text" placeholder="choose username (optional)"></label></div>
+            <div class="field"><label>Password <input id="ps-password" type="password" placeholder="password (min 6 chars)"></label></div>
 
-          <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
-            <button class="btn primary" id="ps-create">Create & Enter</button>
-            <button class="btn ghost" id="ps-back">Back</button>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
+              <button class="btn primary" id="ps-create">Create & Enter</button>
+              <button class="btn ghost" id="ps-back">Back</button>
+            </div>
+
+            <div style="margin-top:12px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;">
+              <div class="tiny">Or</div>
+              <div style="margin-top:2px;">
+                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large"></div>
+              </div>
+              <div id="ps-error" class="error-text" style="display:none"></div>
+              <div class="tiny" style="color:var(--muted)">Use a <strong>@gmail.com</strong> address.</div>
+              <div>
+                <button class="btn ghost" id="ps-goto-login" style="padding:6px 10px;">Already registered? Sign in</button>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div style="margin-top:12px; text-align:center; display:flex; flex-direction:column; align-items:center;">
-            <div class="tiny" style="margin-bottom:8px">Or</div>
-            <button id="ps-gmail" class="btn gmail" title="Sign up with Gmail">
-              <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M43 12H5v24h38V12z" fill="#fff"/><path d="M6 12l17.5 12L6 36V12z" fill="#d93025"/><path d="M42 12l-17.5 12L42 36V12z" fill="#1a73e8"/></svg>
-              Sign up with Gmail
-            </button>
-            <div id="ps-error" class="error-text" style="display:none"></div>
-            <div id="ps-gmail-note" class="tiny" style="margin-top:8px;color:var(--muted)">Use a <strong>@gmail.com</strong> address.</div>
+      <!-- Patient login -->
+      <section id="page-patient-login" class="page">
+        <div class="center" style="gap:10px;">
+          <h2>Patient — Sign in</h2>
+          <p class="tiny">Use your username and password to continue</p>
+        </div>
+
+        <div style="margin-top:12px; display:flex; flex-direction:column; align-items:center;">
+          <div style="width:100%; max-width:420px; display:flex; flex-direction:column; gap:12px;">
+            <div class="field"><label>Username <input id="pl-username" type="text" placeholder="your username"></label></div>
+            <div class="field"><label>Password <input id="pl-password" type="password" placeholder="your password"></label></div>
+
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:4px;">
+              <button class="btn primary" id="pl-login">Sign in</button>
+              <button class="btn ghost" id="pl-back">Back</button>
+            </div>
+
+            <div id="pl-error" class="error-text" style="display:none"></div>
           </div>
         </div>
       </section>
@@ -262,7 +570,7 @@
           </div>
         </div>
 
-        <div class="main-cards">
+        <div class="main-cards" style="grid-template-columns:1fr;">
           <div class="card-large">
             <div style="display:flex;justify-content:space-between;align-items:center">
               <div>
@@ -291,6 +599,12 @@
                   <div class="panel" style="margin-top:12px" id="panel-reports">
                     <h3>My Reports</h3>
                     <div class="tiny" style="margin-top:8px;color:var(--muted)">Upload / View lab reports (demo: list files)</div>
+                    <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                      <input type="file" id="report-file" accept="application/pdf,image/jpeg,image/png" style="display:none" />
+                      <button class="btn ghost" id="report-choose">Choose PDF/JPG</button>
+                      <span id="report-chosen" class="tiny" style="color:var(--muted)">No file chosen</span>
+                      <button class="btn primary" id="report-upload">Upload</button>
+                    </div>
                     <div id="dash-reports" style="margin-top:8px"></div>
                   </div>
 
@@ -338,6 +652,7 @@
             </div>
           </div>
 
+          <!-- BEGIN: Doctor Sidebar (removed for patient view)
           <div class="small-card">
             <div style="font-weight:800">I am a Doctor</div>
             <div class="tiny" style="margin-top:6px;color:var(--muted)">Clinician sign-in & mini-dashboard</div>
@@ -346,6 +661,7 @@
               <button class="btn ghost" id="mini-doctor-create">Create Doctor Account</button>
             </div>
           </div>
+          END: Doctor Sidebar -->
         </div>
 
         <!-- bottom nav (mobile) -->
@@ -392,19 +708,21 @@
           </label></div>
           <div class="field"><label>Phone <input id="ds-phone" type="text" placeholder="+91-XXXXXXXXXX (optional)"></label></div>
           <div class="field">
-            <label>Clinic / Location <input id="ds-location" type="text" placeholder="e.g., Apollo Hospital, Tardeo, Mumbai"></label>
-          </div>
-          <div class="field" style="display:flex; gap:12px;">
-            <label style="flex:1;">Latitude (optional) <input id="ds-lat" type="text" placeholder="e.g., 19.0760"></label>
-            <label style="flex:1;">Longitude (optional) <input id="ds-lng" type="text" placeholder="e.g., 72.8777"></label>
+            <label>Clinic / Location</label>
+            <div id="ds-location-container" style="position:relative;">
+              <input id="ds-location" type="text" placeholder="e.g., Apollo Hospital, Tardeo, Mumbai" style="width:100%; box-sizing:border-box;">
+            </div>
+            <div id="clinic-map-preview" style="display:none; margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+              <iframe id="clinic-map-iframe" width="100%" height="200" style="border:0" loading="lazy" allowfullscreen="" src=""></iframe>
+            </div>
           </div>
           <div style="padding:8px; font-size:11px; color:rgba(255,255,255,0.4); margin-top:-8px;">
-            💡 Tip: Find coordinates at <a href="https://www.google.com/maps" target="_blank" style="color:var(--accent1);">Google Maps</a> (right-click → "What's here?")
+            💡 Tip: Start typing a clinic name to see suggestions with embedded map preview.
           </div>
 
           <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
-            <button class="btn primary" id="ds-create">Create & Enter</button>
-            <button class="btn ghost" id="ds-back">Back</button>
+            <button type="button" class="btn primary" id="ds-create">Create & Enter</button>
+            <button type="button" class="btn ghost" id="ds-back">Back</button>
           </div>
 
           <div id="ds-error" class="error-text" style="display:none"></div>
@@ -418,19 +736,27 @@
           <p class="tiny">Use your username and password (demo: localStorage)</p>
         </div>
 
-        <div style="margin-top:12px; max-width:520px;">
-          <div class="field"><label>Username <input id="dl-username" type="text" placeholder="username"></label></div>
-          <div class="field"><label>Password <input id="dl-password" type="password" placeholder="password"></label></div>
+        <div style="margin-top:12px; max-width:520px; margin-left:auto; margin-right:auto; display:flex; flex-direction:column; align-items:center;">
+          <div class="field" style="width:100%; max-width:300px;"><label>Username <input id="dl-username" type="text" placeholder="username"></label></div>
+          <div class="field" style="width:100%; max-width:300px;"><label>Password <input id="dl-password" type="password" placeholder="password"></label></div>
 
           <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
-            <button class="btn primary" id="dl-login">Sign in</button>
-            <button class="btn ghost" id="dl-back">Back</button>
+            <button type="button" class="btn primary" id="dl-login">Sign in</button>
+            <button type="button" class="btn ghost" id="dl-back">Back</button>
           </div>
 
-          <div id="dl-error" class="error-text" style="display:none"></div>
+          <div id="dl-error" class="error-text" style="display:none;"></div>
+
+          <div style="margin-top:12px; width:100%; max-width:300px;">
+            <div id="g_id_onload"
+              data-client_id="581250268164-0s2b0psiu4doetheepdjaoti79s338jm.apps.googleusercontent.com"
+              data-callback="handleGoogleSignIn">
+            </div>
+            <div class="g_id_signin" data-type="standard"></div>
+          </div>
 
           <p class="tiny" style="margin-top:10px; text-align:center">
-            New? <button class="btn ghost" id="dl-goto-signup" style="padding:6px 10px;">Create doctor account</button>
+            New? <button type="button" class="btn ghost" id="dl-goto-signup" style="padding:6px 10px;">Create doctor account</button>
           </p>
         </div>
       </section>
@@ -466,13 +792,103 @@
             </div>
           </div>
         </div>
+        <!-- Local alert modal for MCQ validation -->
+        <div id="mcq-alert" class="alert-overlay" style="display:none;">
+          <div class="alert-box">
+            <p>Please select an option</p>
+            <button id="mcq-alert-ok" class="btn primary">OK</button>
+          </div>
+        </div>
+
+        <!-- Doctor Quick-View Modal -->
+        <div id="doctor-quick-modal" class="doctor-quick-modal-overlay" style="display:none;">
+          <div class="doctor-quick-modal">
+            <div class="doctor-quick-modal-header">
+              <div class="doctor-quick-modal-avatar" id="dqm-avatar"></div>
+              <div class="doctor-quick-modal-title">
+                <h3 id="dqm-name"></h3>
+                <span class="specialty-badge" id="dqm-specialty"></span>
+              </div>
+              <button class="doctor-quick-modal-close" id="dqm-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="doctor-quick-modal-body">
+              <!-- Map Preview Section -->
+              <div class="doctor-quick-modal-section">
+                <h4>📍 Location</h4>
+                <div id="dqm-map-container"></div>
+              </div>
+              
+              <!-- Clinic Details Section -->
+              <div class="doctor-quick-modal-section">
+                <h4>🏥 Clinic Details</h4>
+                <div class="doctor-quick-clinic-details">
+                  <div class="doctor-quick-detail-row">
+                    <span class="icon">📍</span>
+                    <div class="content">
+                      <div class="label">Address</div>
+                      <div class="value" id="dqm-address"></div>
+                    </div>
+                  </div>
+                  <div class="doctor-quick-detail-row">
+                    <span class="icon">📞</span>
+                    <div class="content">
+                      <div class="label">Phone</div>
+                      <div class="value"><a id="dqm-phone" href="#"></a></div>
+                    </div>
+                  </div>
+                  <div class="doctor-quick-detail-row" id="dqm-distance-row" style="display:none;">
+                    <span class="icon">🚗</span>
+                    <div class="content">
+                      <div class="label">Distance</div>
+                      <div class="value" id="dqm-distance"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Booking Form Section -->
+              <div class="doctor-quick-modal-section">
+                <h4>📅 Book Appointment</h4>
+                <div class="doctor-quick-booking-form">
+                  <div class="field">
+                    <label for="dqm-mode" style="font-size:13px;color:var(--muted);font-weight:600;">Visit Mode</label>
+                    <select id="dqm-mode" required>
+                      <option value="in_person">In-Person Visit</option>
+                      <option value="video">Video Consultation</option>
+                      <option value="phone">Phone Call</option>
+                    </select>
+                  </div>
+                  <div class="doctor-quick-form-row">
+                    <div class="field">
+                      <label for="dqm-date" style="font-size:13px;color:var(--muted);font-weight:600;">Date</label>
+                      <input type="date" id="dqm-date" required />
+                    </div>
+                    <div class="field">
+                      <label for="dqm-time" style="font-size:13px;color:var(--muted);font-weight:600;">Time</label>
+                      <input type="time" id="dqm-time" required />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="dqm-notes" style="font-size:13px;color:var(--muted);font-weight:600;">Notes (optional)</label>
+                    <textarea id="dqm-notes" placeholder="Any specific concerns or requirements..." rows="3"></textarea>
+                  </div>
+                </div>
+                <div id="dqm-error" class="doctor-quick-error" style="display:none;"></div>
+              </div>
+            </div>
+            <div class="doctor-quick-modal-footer">
+              <button class="btn ghost" id="dqm-cancel">Cancel</button>
+              <button class="btn primary" id="dqm-book">Book Appointment</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- Suggestion -->
       <section id="page-suggest" class="page">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><h2>Suggested Specialty: <span id="suggest-specialty" style="color:#b6aaff;font-weight:800"></span></h2><div class="tiny" id="suggest-sub">Based on your answers</div></div>
-          <div class="tiny">Confidence: <strong id="suggest-confidence">High</strong></div>
+          <div class="tiny">Severity: <strong id="suggest-confidence">High</strong></div>
         </div>
 
         <div class="doctor-list" id="doctor-list" style="margin-top:12px"></div>
@@ -491,7 +907,8 @@
             <div class="tiny" id="doctor-welcome">Welcome, Doctor</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn ghost" id="doctor-logout">Logout</button>
+            <button type="button" class="btn ghost" id="doctor-back">Back</button>
+            <button type="button" class="btn ghost" id="doctor-logout">Logout</button>
           </div>
         </div>
 
@@ -520,14 +937,93 @@
             <div class="panel" style="margin-top:12px;">
               <h3 style="margin:0 0 8px 0">Quick Actions</h3>
               <div style="display:flex;flex-direction:column;gap:8px">
-                <button class="btn primary" id="toggle-online">Go Offline</button>
-                <button class="btn ghost" id="refresh-dashboard">Refresh</button>
+                <button type="button" class="btn primary" id="toggle-online">Go Offline</button>
+                <button type="button" class="btn ghost" id="edit-profile-btn">Edit Profile</button>
+                <button type="button" class="btn ghost" id="refresh-dashboard">Refresh</button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      <!-- Doctor Edit Profile Page -->
+      <section id="page-doctor-edit-profile" class="page">
+        <div class="center" style="gap:20px; width:100%; max-width:500px; margin:0 auto;">
+          <h2>Edit Profile</h2>
+          <p class="tiny">Update your professional information</p>
+
+          <!-- Profile Photo Section -->
+          <div style="text-align:center; width:100%;">
+            <div id="ep-photo-preview" style="width:120px; height:120px; margin:0 auto 12px; border-radius:50%; background:#1a3a52; display:flex;align-items:center;justify-content:center; border:2px solid rgba(255,255,255,0.1); font-size:40px; overflow:hidden;">
+              📷
+            </div>
+            <label style="cursor:pointer;">
+              <input type="file" id="ep-photo-input" accept="image/*" style="display:none;">
+              <span class="btn ghost" style="display:inline-block; padding:6px 12px; font-size:13px;">Change Photo</span>
+            </label>
+            <div class="tiny" style="color:var(--muted); margin-top:6px;">JPG, PNG (max 5MB)</div>
+          </div>
+
+          <!-- Form Fields -->
+          <div style="width:100%;">
+            <div class="field"><label>Full name <input id="ep-name" type="text" placeholder="e.g., Dr. Arup Sen" style="width:100%;"></label></div>
+            <div class="field"><label>Specialty 
+              <select id="ep-specialty" required style="width:100%;">
+                <option value="">-- Select Specialty --</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="Endocrinology">Endocrinology</option>
+                <option value="ENT">ENT (Ear, Nose, Throat)</option>
+                <option value="Gastroenterology">Gastroenterology</option>
+                <option value="General Practice">General Practice</option>
+                <option value="Hematology">Hematology</option>
+                <option value="Nephrology">Nephrology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Oncology">Oncology</option>
+                <option value="Ophthalmology">Ophthalmology</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pediatrics">Pediatrics</option>
+                <option value="Psychiatry">Psychiatry</option>
+                <option value="Pulmonology">Pulmonology</option>
+                <option value="Rheumatology">Rheumatology</option>
+                <option value="Urology">Urology</option>
+              </select>
+            </label></div>
+            <div class="field"><label>Phone <input id="ep-phone" type="text" placeholder="+91-XXXXXXXXXX" style="width:100%;"></label></div>
+            <div class="field">
+              <label>Clinic / Location</label>
+              <div id="ep-location-container" style="position:relative;">
+                <input id="ep-location" type="text" placeholder="e.g., Apollo Hospital, Tardeo, Mumbai" style="width:100%; box-sizing:border-box;">
+              </div>
+              <div id="ep-clinic-map-preview" style="display:none; margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+                <iframe id="ep-clinic-map-iframe" width="100%" height="200" style="border:0" loading="lazy" allowfullscreen="" src=""></iframe>
+              </div>
+            </div>
+            <div class="field"><label>Password (leave blank to keep current) <input id="ep-password" type="password" placeholder="new password (min 6 chars)" style="width:100%;"></label></div>
+
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px; width:100%;">
+              <button type="button" class="btn primary" id="ep-save">Save Changes</button>
+              <button type="button" class="btn ghost" id="ep-cancel">Cancel</button>
+            </div>
+
+            <div id="ep-error" class="error-text" style="display:none; width:100%;"></div>
+            <div id="ep-success" class="success-text" style="display:none; width:100%;"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirm-modal" class="modal-backdrop" style="display:none">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3 id="confirm-title">Confirm Action</h3>
+      <p id="confirm-message" class="tiny" style="margin-top:8px; margin-bottom:16px;"></p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" class="btn ghost" id="confirm-cancel-btn">Cancel</button>
+        <button type="button" class="btn primary" id="confirm-ok-btn">OK</button>
+      </div>
     </div>
   </div>
 
@@ -595,8 +1091,8 @@
 
         <!-- Action buttons -->
         <div style="display:flex;gap:8px;justify-content:flex-end">
-          <button class="btn ghost" id="book-cancel">Cancel</button>
-          <button class="btn primary" id="book-confirm" disabled>Confirm Booking</button>
+          <button type="button" class="btn ghost" id="book-cancel">Cancel</button>
+          <button type="button" class="btn primary" id="book-confirm" disabled>Confirm Booking</button>
         </div>
       </div>
     </div>
@@ -604,6 +1100,71 @@
 
   <!-- Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- New Booking Modal -->
+  <div id="booking-modal" class="booking-modal-overlay" style="display:none;">
+    <div class="booking-modal">
+      <div class="booking-modal-header">
+        <div class="booking-modal-header-content">
+          <h3 id="bm-doctor-name">Dr. Name</h3>
+          <span class="booking-modal-specialty" id="bm-specialty">Specialty</span>
+          <div class="booking-modal-address">
+            <span>📍</span>
+            <span id="bm-address">Clinic Address</span>
+          </div>
+        </div>
+        <button class="booking-modal-close" id="bm-close" aria-label="Close">&times;</button>
+      </div>
+      
+      <div class="booking-modal-body">
+        <!-- Map Section -->
+        <div class="booking-modal-section">
+          <h4>📍 Location</h4>
+          <div class="booking-map-container" id="bm-map-container">
+            <iframe id="bm-map-iframe" src="" allowfullscreen="" loading="lazy"></iframe>
+          </div>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="booking-modal-section">
+          <h4>📅 Appointment Details</h4>
+          <div class="booking-form-group">
+            <div class="field">
+              <label for="bm-mode" style="font-size:13px;color:var(--muted);font-weight:600;">Visit Mode</label>
+              <select id="bm-mode" required>
+                <option value="in_person">In-Person Visit</option>
+                <option value="video">Video Consultation</option>
+                <option value="phone">Phone Call</option>
+              </select>
+            </div>
+            
+            <div class="booking-form-row">
+              <div class="field">
+                <label for="bm-date" style="font-size:13px;color:var(--muted);font-weight:600;">Date</label>
+                <input type="date" id="bm-date" required />
+              </div>
+              <div class="field">
+                <label for="bm-time" style="font-size:13px;color:var(--muted);font-weight:600;">Time</label>
+                <input type="time" id="bm-time" required />
+              </div>
+            </div>
+            
+            <div class="field">
+              <label for="bm-notes" style="font-size:13px;color:var(--muted);font-weight:600;">Notes (optional)</label>
+              <textarea id="bm-notes" placeholder="Any specific concerns or requirements..." rows="3"></textarea>
+            </div>
+          </div>
+          
+          <div id="bm-error" class="booking-error" style="display:none;"></div>
+        </div>
+      </div>
+      
+      <div class="booking-modal-footer">
+        <button class="btn ghost" id="bm-cancel">Cancel</button>
+        <button class="btn primary" id="bm-book">Book Appointment</button>
+      </div>
+    </div>
+  </div>
 
 <script>
 /* ---------- Storage helpers ---------- */
@@ -634,9 +1195,9 @@ document.getElementById('ctrl-theme').addEventListener('click', ()=> {
   localStorage.setItem('st_theme', isLight ? 'light' : 'dark');
   updateThemeButton();
 });
-document.getElementById('ctrl-blog').addEventListener('click', ()=> openBlog());
 document.getElementById('landing-blog-mini').addEventListener('click', ()=> openBlog());
 document.getElementById('ctrl-sub').addEventListener('click', ()=> { showToast('Open Subscription (top right).'); openSubscription(); });
+document.getElementById('landing-sub-mini').addEventListener('click', ()=> { showToast('Subscription feature coming soon!'); openSubscription(); });
 
 /* ---------- Avatar / profile click ---------- */
 document.getElementById('ctrl-profile').addEventListener('click', ()=> {
@@ -684,13 +1245,15 @@ function openSubscription(){ openBlog(); blogProblem.value = ''; blogResult.inne
 const pages = {
   'page-landing': document.getElementById('page-landing'),
   'page-patient-signup': document.getElementById('page-patient-signup'),
+  'page-patient-login': document.getElementById('page-patient-login'),
   'page-doctor-signup': document.getElementById('page-doctor-signup'),
   'page-doctor-login': document.getElementById('page-doctor-login'),
   'page-main-symptom': document.getElementById('page-main-symptom'),
   'page-test': document.getElementById('page-test'),
   'page-suggest': document.getElementById('page-suggest'),
   'page-doctor-dashboard': document.getElementById('page-doctor-dashboard'),
-  'page-patient-dashboard': document.getElementById('page-patient-dashboard')
+  'page-patient-dashboard': document.getElementById('page-patient-dashboard'),
+  'page-doctor-edit-profile': document.getElementById('page-doctor-edit-profile')
 };
 function showPage(id){
   Object.values(pages).forEach(p=>p && p.classList && p.classList.remove('active'));
@@ -703,6 +1266,8 @@ document.getElementById('btn-patient').addEventListener('click', ()=> showPage('
 /* ---------- Patient signup ---------- */
 const psName = document.getElementById('ps-name'), psUsername = document.getElementById('ps-username'), psPassword = document.getElementById('ps-password'), psCreate = document.getElementById('ps-create'), psBack = document.getElementById('ps-back'), psError = document.getElementById('ps-error');
 psBack.addEventListener('click', ()=> { psError.style.display='none'; showPage('page-landing'); });
+const psGotoLogin = document.getElementById('ps-goto-login');
+if(psGotoLogin) psGotoLogin.addEventListener('click', ()=> { psError.style.display='none'; showPage('page-patient-login'); });
 
 psCreate.addEventListener('click', ()=> {
   psError.style.display='none';
@@ -723,8 +1288,183 @@ psCreate.addEventListener('click', ()=> {
   renderPatientDashboard();
 });
 
+/* ---------- Patient login ---------- */
+const plUsername = document.getElementById('pl-username'), plPassword = document.getElementById('pl-password'), plLogin = document.getElementById('pl-login'), plBack = document.getElementById('pl-back'), plError = document.getElementById('pl-error');
+if(plBack) plBack.addEventListener('click', ()=> { plError.style.display='none'; showPage('page-patient-signup'); });
+if(plLogin) plLogin.addEventListener('click', ()=> {
+  plError.style.display = 'none';
+  const username = (plUsername.value||'').trim();
+  const password = plPassword.value||'';
+  if(!username) return showError(plError, 'Please enter username.');
+  if(!password) return showError(plError, 'Please enter password.');
+  const users = load(USERS_KEY) || [];
+  const patient = users.find(u => u.role === 'patient' && u.username === username);
+  if(!patient) return showError(plError, 'No patient found with that username.');
+  if(patient.password !== password) return showError(plError, 'Incorrect password.');
+  sessionStorage.setItem('st_session', JSON.stringify({ username: patient.username, role: 'patient' }));
+  showToast('Signed in as ' + (patient.name || patient.username));
+  plUsername.value = ''; plPassword.value = '';
+  renderPatientDashboard();
+});
+
 /* ---------- Doctor signup ---------- */
-const dsName = document.getElementById('ds-name'), dsUsername = document.getElementById('ds-username'), dsPassword = document.getElementById('ds-password'), dsSpecialty = document.getElementById('ds-specialty'), dsPhone = document.getElementById('ds-phone'), dsLocation = document.getElementById('ds-location'), dsLat = document.getElementById('ds-lat'), dsLng = document.getElementById('ds-lng'), dsCreate = document.getElementById('ds-create'), dsBack = document.getElementById('ds-back'), dsError = document.getElementById('ds-error');
+const dsName = document.getElementById('ds-name'), dsUsername = document.getElementById('ds-username'), dsPassword = document.getElementById('ds-password'), dsSpecialty = document.getElementById('ds-specialty'), dsPhone = document.getElementById('ds-phone'), dsLocation = document.getElementById('ds-location'), dsCreate = document.getElementById('ds-create'), dsBack = document.getElementById('ds-back'), dsError = document.getElementById('ds-error');
+
+// Clinic Location Autocomplete with Google Maps Embed iframe
+let selectedPlace = null;
+
+// Demo clinic dataset for autocomplete (no API needed)
+const DEMO_CLINICS = [
+  { name: 'Apollo Hospital, Mumbai', address: 'Mumbai, Maharashtra', lat: 19.0760, lng: 72.8777, query: 'Apollo Hospital Mumbai' },
+  { name: 'Apollo Hospital, Delhi', address: 'Delhi', lat: 28.5724, lng: 77.2065, query: 'Apollo Hospital Delhi' },
+  { name: 'Apollo Hospital, Bangalore', address: 'Bangalore, Karnataka', lat: 13.1939, lng: 77.6045, query: 'Apollo Hospital Bangalore' },
+  { name: 'Fortis Healthcare, Mumbai', address: 'Mumbai, Maharashtra', lat: 19.0176, lng: 72.8479, query: 'Fortis Healthcare Mumbai' },
+  { name: 'Fortis Healthcare, Delhi', address: 'Delhi', lat: 28.5355, lng: 77.3910, query: 'Fortis Healthcare Delhi' },
+  { name: 'Max Healthcare, Delhi', address: 'Delhi', lat: 28.5244, lng: 77.1855, query: 'Max Healthcare Delhi' },
+  { name: 'Max Healthcare, Mumbai', address: 'Mumbai, Maharashtra', lat: 19.1136, lng: 72.8697, query: 'Max Healthcare Mumbai' },
+  { name: 'Lilavati Hospital, Mumbai', address: 'Mumbai, Maharashtra', lat: 19.0288, lng: 72.8281, query: 'Lilavati Hospital Mumbai' },
+  { name: 'Sir Ganga Ram Hospital, Delhi', address: 'Delhi', lat: 28.7041, lng: 77.2064, query: 'Sir Ganga Ram Hospital Delhi' },
+  { name: 'Breach Candy Hospital, Mumbai', address: 'Mumbai, Maharashtra', lat: 18.9676, lng: 72.8194, query: 'Breach Candy Hospital Mumbai' },
+  { name: 'Kokilaben Hospital, Mumbai', address: 'Mumbai, Maharashtra', lat: 19.1356, lng: 72.8900, query: 'Kokilaben Hospital Mumbai' },
+  { name: 'Holy Family Hospital, Delhi', address: 'Delhi', lat: 28.6328, lng: 77.2197, query: 'Holy Family Hospital Delhi' },
+];
+
+function createAutocompleteDropdown() {
+  const container = document.getElementById('ds-location-container');
+  const existingDropdown = document.getElementById('clinic-suggestions-dropdown');
+  if (existingDropdown) existingDropdown.remove();
+  
+  const dropdown = document.createElement('div');
+  dropdown.id = 'clinic-suggestions-dropdown';
+  dropdown.style.cssText = `
+    position: absolute; top: 100%; left: 0; right: 0; background: #0f1724; border: 1px solid rgba(255,255,255,0.1); 
+    border-top: none; border-radius: 0 0 12px 12px; max-height: 200px; overflow-y: auto; display: none; z-index: 1000; margin-top: -2px;
+  `;
+  container.appendChild(dropdown);
+  return dropdown;
+}
+
+function showSuggestions(query, dropdown) {
+  if (!query.trim()) {
+    dropdown.style.display = 'none';
+    return;
+  }
+  
+  const filtered = DEMO_CLINICS.filter(clinic => 
+    clinic.name.toLowerCase().includes(query.toLowerCase()) ||
+    clinic.address.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  if (filtered.length === 0) {
+    dropdown.style.display = 'none';
+    return;
+  }
+  
+  dropdown.innerHTML = filtered.map(clinic => `
+    <div class="clinic-suggestion" data-clinic='${JSON.stringify(clinic).replace(/'/g, "&apos;")}' 
+         style="padding: 10px 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); color: #e6eef8; font-size: 13px;">
+      <div style="font-weight: 500;">${clinic.name}</div>
+      <div style="font-size: 11px; color: var(--muted);">${clinic.address}</div>
+    </div>
+  `).join('');
+  
+  dropdown.style.display = 'block';
+  
+  dropdown.querySelectorAll('.clinic-suggestion').forEach(item => {
+    item.addEventListener('click', () => {
+      const clinic = JSON.parse(item.getAttribute('data-clinic'));
+      selectClinic(clinic);
+      dropdown.style.display = 'none';
+    });
+    item.addEventListener('mouseover', () => {
+      item.style.backgroundColor = 'rgba(123,97,255,0.2)';
+    });
+    item.addEventListener('mouseout', () => {
+      item.style.backgroundColor = 'transparent';
+    });
+  });
+}
+
+function selectClinic(clinic) {
+  selectedPlace = clinic;
+  
+  dsLocation.value = clinic.name;
+  
+  // Show map iframe using lat/lng
+  const mapPreview = document.getElementById('clinic-map-preview');
+  const mapIframe = document.getElementById('clinic-map-iframe');
+  mapPreview.style.display = 'block';
+  
+  // Google Maps embed using coordinates
+  mapIframe.src = `https://www.google.com/maps?q=${clinic.lat},${clinic.lng}&output=embed`;
+}
+
+// Live Map Preview - shows map as user types
+let mapTimeout = null;
+function initializeLiveMapPreview() {
+  const dsLoc = document.getElementById('ds-location');
+  const dsMap = document.getElementById('clinic-map-preview');
+  
+  dsLoc.addEventListener('input', () => {
+    const val = dsLoc.value.trim();
+    
+    // If input is empty, hide the map
+    if(!val) { 
+      dsMap.style.display = 'none'; 
+      return; 
+    }
+    
+    // Debounce: update map 1 second after user stops typing
+    clearTimeout(mapTimeout);
+    mapTimeout = setTimeout(() => {
+      dsMap.style.display = 'block';
+      
+      // Load Google Maps iframe with the location query
+      dsMap.innerHTML = `
+        <iframe 
+          width="100%" 
+          height="100%" 
+          style="border:0" 
+          loading="lazy" 
+          src="https://www.google.com/maps?q=${encodeURIComponent(val)}&output=embed">
+        </iframe>`;
+    }, 1000);
+  });
+}
+
+function initializeClinicAutocomplete() {
+  const dropdown = createAutocompleteDropdown();
+  
+  dsLocation.addEventListener('input', () => {
+    showSuggestions(dsLocation.value, dropdown);
+  });
+  
+  dsLocation.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') e.preventDefault();
+    if (e.key === 'Escape') dropdown.style.display = 'none';
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (e.target !== dsLocation && e.target.id !== 'clinic-suggestions-dropdown') {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+// Initialize autocomplete and live map preview
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      initializeClinicAutocomplete();
+      initializeLiveMapPreview();
+    }, 300);
+  });
+} else {
+  setTimeout(() => {
+    initializeClinicAutocomplete();
+    initializeLiveMapPreview();
+  }, 300);
+}
 
 dsBack.addEventListener('click', ()=> { dsError.style.display='none'; showPage('page-landing'); });
 
@@ -799,9 +1539,11 @@ function validatePhone(phone) {
   return { valid: false, error: 'Phone must be E.164 format (e.g., +91XXXXXXXXXX)' };
 }
 
-dsCreate.addEventListener('click', ()=> {
+dsCreate.addEventListener('click', (e)=> {
+  e.preventDefault(); // Prevent form refresh
   dsError.style.display='none';
-  const name = dsName.value.trim(), username = dsUsername.value.trim(), password = dsPassword.value, specialty = dsSpecialty.value.trim(), phone = dsPhone.value.trim(), location = dsLocation.value.trim(), lat = dsLat.value.trim(), lng = dsLng.value.trim();
+  
+  const name = dsName.value.trim(), username = dsUsername.value.trim(), password = dsPassword.value, specialty = dsSpecialty.value.trim(), phone = dsPhone.value.trim(), location = dsLocation.value.trim();
   
   // Validate required fields
   if(!name) return showError(dsError,'Please enter full name.');
@@ -812,10 +1554,6 @@ dsCreate.addEventListener('click', ()=> {
   // Validate phone if provided
   const phoneValidation = validatePhone(phone);
   if (!phoneValidation.valid) return showError(dsError, phoneValidation.error);
-  
-  // Validate coordinates if provided
-  const coordValidation = validateCoordinates(lat, lng);
-  if (!coordValidation.valid) return showError(dsError, coordValidation.error);
   
   const users = load(USERS_KEY) || [];
   
@@ -835,6 +1573,7 @@ dsCreate.addEventListener('click', ()=> {
     }
   }
   
+  // Create account
   users.push({ 
     username: unameFinal, 
     password, 
@@ -842,16 +1581,28 @@ dsCreate.addEventListener('click', ()=> {
     name, 
     specialty, 
     phone, 
-    location,
-    clinicLat: coordValidation.lat || null,
-    clinicLng: coordValidation.lng || null,
-    clinicPlaceId: null
+    location
   });
   save(USERS_KEY, users);
   sessionStorage.setItem('st_session', JSON.stringify({ username: unameFinal, role:'doctor' }));
-  dsName.value=''; dsUsername.value=''; dsPassword.value=''; dsSpecialty.value=''; dsPhone.value=''; dsLocation.value=''; dsLat.value=''; dsLng.value='';
-  showToast('Doctor account created — signed in'); 
-  // after creating doctor account, open dashboard automatically:
+  
+  // Show success message
+  showToast('Doctor account created — signed in');
+  
+  // Clear form AFTER successful creation
+  dsName.value=''; 
+  dsUsername.value=''; 
+  dsPassword.value=''; 
+  dsSpecialty.value=''; 
+  dsPhone.value=''; 
+  dsLocation.value='';
+  selectedPlace = null;
+  const mapPreview = document.getElementById('clinic-map-preview');
+  if (mapPreview) mapPreview.classList.remove('active');
+  const coords = document.getElementById('clinic-coords');
+  if (coords) coords.textContent = 'Lat: ---, Lng: ---';
+  
+  // Open dashboard automatically
   renderDoctorDashboard();
 });
 
@@ -876,6 +1627,85 @@ dlLogin.addEventListener('click', ()=> {
   renderDoctorDashboard();
 });
 
+/* ---------- Google OAuth Sign-In Handler ---------- */
+function handleGoogleSignIn(response) {
+  try {
+    console.log('Google Sign-In Response:', response);
+    if (!response.credential) return;
+
+    // Decode JWT token to get user info
+    const base64Url = response.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    const userData = JSON.parse(jsonPayload);
+    console.log('Google User Data:', userData);
+
+    const users = load(USERS_KEY) || [];
+    const patientActive = (pages['page-patient-signup'] && pages['page-patient-signup'].classList.contains('active')) || (pages['page-patient-login'] && pages['page-patient-login'].classList.contains('active'));
+    const doctorActive = pages['page-doctor-login'] && pages['page-doctor-login'].classList.contains('active');
+
+    if (patientActive) {
+      // Patient OAuth signup/login
+      let patient = users.find(u => u.role === 'patient' && u.email === userData.email);
+      if (!patient) {
+        const base = (userData.email || userData.name || 'patient').split('@')[0].toLowerCase().replace(/[^a-z0-9._-]/g,'').slice(0,20) || 'patient';
+        let username = base || 'patient';
+        let suffix = 1;
+        while (users.find(u => u.username === username)) { username = `${base}${suffix}`; suffix++; }
+        patient = {
+          username,
+          password: 'google_oauth_' + Math.random().toString(36).substr(2, 9),
+          role: 'patient',
+          name: userData.name || username,
+          email: userData.email || '',
+          age:'—', gender:'—', lastCheckup:'—'
+        };
+        users.push(patient);
+        save(USERS_KEY, users);
+        showToast('Patient account created with Google');
+      } else {
+        showToast('Signed in as ' + (patient.name || patient.username));
+      }
+      sessionStorage.setItem('st_session', JSON.stringify({ username: patient.username, role: 'patient' }));
+      psName.value=''; psUsername.value=''; psPassword.value='';
+      renderPatientDashboard();
+      return;
+    }
+
+    // Doctor OAuth signup/login (default)
+    let doctor = users.find(u => u.email === userData.email && u.role === 'doctor');
+    if (!doctor) {
+      doctor = {
+        username: userData.email.split('@')[0],
+        name: userData.name,
+        email: userData.email,
+        password: 'google_oauth_' + Math.random().toString(36).substr(2, 9),
+        role: 'doctor',
+        phone: '',
+        location: '',
+        specialty: 'General Practice',
+        createdAt: new Date().toISOString()
+      };
+      users.push(doctor);
+      save(USERS_KEY, users);
+      showToast('Welcome! Doctor account created with Google');
+    } else {
+      showToast('Signed in as ' + (doctor.name || doctor.email));
+    }
+
+    sessionStorage.setItem('st_session', JSON.stringify({ username: doctor.username, role: 'doctor' }));
+    dlUsername.value = '';
+    dlPassword.value = '';
+    renderDoctorDashboard();
+  } catch (error) {
+    console.error('Google Sign-In Error:', error);
+    const targetErrorEl = pages['page-patient-signup'].classList.contains('active') ? psError : dlError;
+    showError(targetErrorEl, 'Google Sign-In failed: ' + error.message);
+  }
+}
+
 /* ---------- Symptom / test / suggestion logic (NEW 10 MCQ) ---------- */
 const mainSym = document.getElementById('main-sym'), symNext = document.getElementById('sym-next'), symBack = document.getElementById('sym-back');
 symBack.addEventListener('click', ()=> showPage('page-patient-signup'));
@@ -883,7 +1713,458 @@ mainSym.addEventListener('input', ()=> symNext.disabled = !mainSym.value.trim())
 symNext.addEventListener('click', ()=> { if(!mainSym.value.trim()) return; prepareTest(mainSym.value.trim()); showPage('page-test'); });
 
 const qCard = document.getElementById('q-card'), qPrev = document.getElementById('q-prev'), qNext = document.getElementById('q-next'), qSave = document.getElementById('q-save'), progressBar = document.getElementById('test-progress-bar'), progressText = document.getElementById('test-progress-text');
+const mcqAlert = document.getElementById('mcq-alert'), mcqAlertOk = document.getElementById('mcq-alert-ok');
 let testState = { symptom:'', questions:[], answers:[], idx:0 };
+
+function setMcqAlert(show){ if(!mcqAlert) return; mcqAlert.style.display = show ? 'flex' : 'none'; }
+if(mcqAlertOk) mcqAlertOk.addEventListener('click', ()=> setMcqAlert(false));
+
+/* ---------- New Booking Modal ---------- */
+let currentBookingDoctor = null;
+let currentBookingSpecialty = null;
+
+window.openBookingModal = function(doctor, specialty) {
+  console.log('Opening booking modal for:', doctor.name, specialty);
+  
+  currentBookingDoctor = doctor;
+  currentBookingSpecialty = specialty;
+  
+  const modal = document.getElementById('booking-modal');
+  const bmName = document.getElementById('bm-doctor-name');
+  const bmSpecialty = document.getElementById('bm-specialty');
+  const bmAddress = document.getElementById('bm-address');
+  const bmMapIframe = document.getElementById('bm-map-iframe');
+  const bmError = document.getElementById('bm-error');
+  
+  if (!modal) {
+    console.error('Booking modal not found!');
+    return;
+  }
+  
+  // Set modal content
+  if (bmName) bmName.textContent = doctor.name || 'Doctor';
+  if (bmSpecialty) bmSpecialty.textContent = specialty || 'General Practice';
+  
+  // Build full address from doctor object
+  const fullAddress = doctor.address 
+    ? `${doctor.address}${doctor.city ? ', ' + doctor.city : ''}${doctor.state ? ', ' + doctor.state : ''}`
+    : (doctor.location || 'Location not available');
+  if (bmAddress) bmAddress.textContent = fullAddress;
+  
+  // Set up interactive map with zoom controls
+  let mapQuery;
+  if (doctor.lat && doctor.lng) {
+    // Use coordinates if available
+    mapQuery = `${doctor.lat},${doctor.lng}`;
+  } else {
+    // Use address as fallback
+    mapQuery = encodeURIComponent(fullAddress || doctor.name);
+  }
+  if (bmMapIframe) bmMapIframe.src = `https://www.google.com/maps?q=${mapQuery}&output=embed&z=15`;
+  
+  // Clear previous inputs
+  const bmMode = document.getElementById('bm-mode');
+  const bmDate = document.getElementById('bm-date');
+  const bmTime = document.getElementById('bm-time');
+  const bmNotes = document.getElementById('bm-notes');
+  
+  if (bmMode) bmMode.value = 'in_person';
+  if (bmDate) bmDate.value = '';
+  if (bmTime) bmTime.value = '';
+  if (bmNotes) bmNotes.value = '';
+  if (bmError) bmError.style.display = 'none';
+  
+  // Show modal
+  modal.style.display = 'flex';
+  console.log('Booking modal opened successfully');
+}
+
+window.closeBookingModal = function() {
+  const modal = document.getElementById('booking-modal');
+  if (modal) modal.style.display = 'none';
+  currentBookingDoctor = null;
+  currentBookingSpecialty = null;
+}
+
+// Initialize booking modal event listeners when DOM is ready
+function initBookingModal() {
+  const bmClose = document.getElementById('bm-close');
+  const bmCancel = document.getElementById('bm-cancel');
+  const bmBook = document.getElementById('bm-book');
+  const bmError = document.getElementById('bm-error');
+
+  if (bmClose) {
+    bmClose.addEventListener('click', window.closeBookingModal);
+  }
+
+  if (bmCancel) {
+    bmCancel.addEventListener('click', window.closeBookingModal);
+  }
+
+  if (bmBook) {
+    bmBook.addEventListener('click', async () => {
+      if (!currentBookingDoctor) {
+        console.error('No doctor selected for booking');
+        return;
+      }
+    
+    const mode = document.getElementById('bm-mode').value;
+    const date = document.getElementById('bm-date').value;
+    const time = document.getElementById('bm-time').value;
+    const notes = document.getElementById('bm-notes').value;
+    
+    // Validation
+    if (!date || !time) {
+      bmError.textContent = 'Please select both date and time';
+      bmError.style.display = 'block';
+      return;
+    }
+    
+    // Check if appointment is in the past
+    const appointmentDateTime = new Date(`${date}T${time}`);
+    if (appointmentDateTime < new Date()) {
+      bmError.textContent = 'Cannot book appointments in the past';
+      bmError.style.display = 'block';
+      return;
+    }
+    
+    // Get current session
+    const sess = JSON.parse(sessionStorage.getItem('st_session') || 'null');
+    if (!sess || sess.role !== 'patient') {
+      bmError.textContent = 'Please sign in as a patient first';
+      bmError.style.display = 'block';
+      return;
+    }
+    
+    // Prepare booking data
+    const fullClinicAddress = currentBookingDoctor.address 
+      ? `${currentBookingDoctor.address}${currentBookingDoctor.city ? ', ' + currentBookingDoctor.city : ''}${currentBookingDoctor.state ? ', ' + currentBookingDoctor.state : ''}`
+      : (currentBookingDoctor.location || '');
+    
+    const bookingData = {
+      patient: sess.username,
+      doctor: currentBookingDoctor.name,
+      doctorName: currentBookingDoctor.name,
+      specialty: currentBookingSpecialty,
+      clinic: fullClinicAddress,
+      phone: currentBookingDoctor.phone || '',
+      mode: mode,
+      datetime: appointmentDateTime.toISOString(),
+      notes: notes,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    
+    try {
+      // Disable button during booking
+      bmBook.disabled = true;
+      bmBook.textContent = 'Booking...';
+      bmError.style.display = 'none';
+      
+      // Save to localStorage (demo mode)
+      const appts = load(APPTS_KEY) || [];
+      bookingData.id = 'appt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      appts.push(bookingData);
+      save(APPTS_KEY, appts);
+      
+      // Show success message
+      showToast(`Appointment booked with ${currentBookingDoctor.name}`);
+      
+      // Close modal
+      closeBookingModal();
+      
+      // Reset button
+      bmBook.disabled = false;
+      bmBook.textContent = 'Book Appointment';
+      
+    } catch (error) {
+      console.error('Booking error:', error);
+      bmError.textContent = 'Failed to book appointment. Please try again.';
+      bmError.style.display = 'block';
+      bmBook.disabled = false;
+      bmBook.textContent = 'Book Appointment';
+    }
+  });
+  }
+
+  // Close modal when clicking outside
+  const bookingModalOverlay = document.getElementById('booking-modal');
+  if (bookingModalOverlay) {
+    bookingModalOverlay.addEventListener('click', (e) => {
+      if (e.target === bookingModalOverlay) {
+        window.closeBookingModal();
+      }
+    });
+  }
+  
+  console.log('Booking modal initialized');
+}
+
+// Call initialization when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initBookingModal);
+} else {
+  initBookingModal();
+}
+
+/* ---------- Doctor Quick-View Modal ---------- */
+const doctorQuickModal = document.getElementById('doctor-quick-modal');
+const dqmClose = document.getElementById('dqm-close');
+const dqmCancel = document.getElementById('dqm-cancel');
+const dqmBook = document.getElementById('dqm-book');
+const dqmAvatar = document.getElementById('dqm-avatar');
+const dqmName = document.getElementById('dqm-name');
+const dqmSpecialty = document.getElementById('dqm-specialty');
+const dqmMapContainer = document.getElementById('dqm-map-container');
+const dqmAddress = document.getElementById('dqm-address');
+const dqmPhone = document.getElementById('dqm-phone');
+const dqmDistanceRow = document.getElementById('dqm-distance-row');
+const dqmDistance = document.getElementById('dqm-distance');
+const dqmMode = document.getElementById('dqm-mode');
+const dqmDate = document.getElementById('dqm-date');
+const dqmTime = document.getElementById('dqm-time');
+const dqmNotes = document.getElementById('dqm-notes');
+const dqmError = document.getElementById('dqm-error');
+
+let currentDoctorData = null;
+
+function openDoctorQuickModal(doctor, specialty) {
+  currentDoctorData = { ...doctor, specialty };
+  
+  // Set header
+  const initials = doctor.name.split(' ').map(n => n[0]).slice(0, 2).join('');
+  dqmAvatar.textContent = initials;
+  dqmName.textContent = doctor.name;
+  dqmSpecialty.textContent = specialty || doctor.specialty || 'General Medicine';
+  
+  // Set address and phone
+  const fullAddress = `${doctor.address || ''}, ${doctor.city || ''}, ${doctor.state || ''}`.trim().replace(/^,\s*|,\s*$/g, '');
+  dqmAddress.textContent = fullAddress || 'Address not available';
+  dqmPhone.textContent = doctor.phone || 'N/A';
+  dqmPhone.href = doctor.phone ? `tel:${doctor.phone}` : '#';
+  
+  // Map preview or link
+  dqmMapContainer.innerHTML = '';
+  if (doctor.lat && doctor.lng) {
+    // Check if we can embed a map (Google Maps Embed API would need an API key)
+    // For now, we'll show a link to open in Google Maps
+    const mapLink = document.createElement('a');
+    mapLink.className = 'doctor-quick-map-link';
+    mapLink.href = doctor.google_place_id 
+      ? `https://www.google.com/maps/place/?q=place_id:${doctor.google_place_id}`
+      : `https://www.google.com/maps/search/?api=1&query=${doctor.lat},${doctor.lng}`;
+    mapLink.target = '_blank';
+    mapLink.innerHTML = '📍 Open Location in Google Maps';
+    dqmMapContainer.appendChild(mapLink);
+  } else {
+    const noMap = document.createElement('div');
+    noMap.className = 'doctor-quick-map-link';
+    noMap.style.cursor = 'default';
+    noMap.style.opacity = '0.5';
+    noMap.textContent = '📍 Location not available';
+    dqmMapContainer.appendChild(noMap);
+  }
+  
+  // Calculate distance if user location is available
+  if (navigator.geolocation && doctor.lat && doctor.lng) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        const distance = calculateDistance(userLat, userLng, parseFloat(doctor.lat), parseFloat(doctor.lng));
+        dqmDistance.textContent = distance.toFixed(1) + ' km';
+        dqmDistanceRow.style.display = 'flex';
+      },
+      () => {
+        dqmDistanceRow.style.display = 'none';
+      }
+    );
+  } else {
+    dqmDistanceRow.style.display = 'none';
+  }
+  
+  // Set default date/time
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  dqmDate.value = tomorrow.toISOString().split('T')[0];
+  dqmDate.min = new Date().toISOString().split('T')[0];
+  dqmTime.value = '09:00';
+  dqmMode.value = 'in_person';
+  dqmNotes.value = '';
+  dqmError.style.display = 'none';
+  
+  // Show modal
+  doctorQuickModal.style.display = 'flex';
+  
+  // Focus trap - focus first input
+  dqmMode.focus();
+}
+
+function closeDoctorQuickModal() {
+  doctorQuickModal.style.display = 'none';
+  currentDoctorData = null;
+}
+
+// Helper function to calculate distance using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of Earth in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// Close modal handlers
+dqmClose.addEventListener('click', closeDoctorQuickModal);
+dqmCancel.addEventListener('click', closeDoctorQuickModal);
+
+// Close on backdrop click
+doctorQuickModal.addEventListener('click', (e) => {
+  if (e.target === doctorQuickModal) closeDoctorQuickModal();
+});
+
+// ESC key handler
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && doctorQuickModal.style.display === 'flex') {
+    closeDoctorQuickModal();
+  }
+});
+
+// Book appointment handler
+dqmBook.addEventListener('click', async () => {
+  dqmError.style.display = 'none';
+  
+  // Validate inputs
+  if (!dqmDate.value || !dqmTime.value) {
+    dqmError.textContent = 'Please select date and time';
+    dqmError.style.display = 'block';
+    return;
+  }
+  
+  const selectedDate = new Date(dqmDate.value + 'T' + dqmTime.value);
+  if (selectedDate < new Date()) {
+    dqmError.textContent = 'Cannot book appointments in the past';
+    dqmError.style.display = 'block';
+    return;
+  }
+  
+  // Check if user is logged in as patient
+  const sess = JSON.parse(sessionStorage.getItem('st_session') || 'null');
+  if (!sess || sess.role !== 'patient') {
+    dqmError.textContent = 'You must be logged in as a patient to book';
+    dqmError.style.display = 'block';
+    setTimeout(() => {
+      closeDoctorQuickModal();
+      showPage('page-patient-signup');
+    }, 2000);
+    return;
+  }
+  
+  // Disable button while submitting
+  dqmBook.disabled = true;
+  dqmBook.textContent = 'Booking...';
+  
+  try {
+    const mode = dqmMode.value;
+    const notes = dqmNotes.value.trim();
+    const startDT = new Date(dqmDate.value + 'T' + dqmTime.value);
+    const endDT = new Date(startDT.getTime() + 30 * 60000); // 30 min appointment
+    
+    // Try backend API first
+    const token = sessionStorage.getItem('st_token');
+    if (token) {
+      const payload = {
+        doctorId: currentDoctorData.id ? String(currentDoctorData.id) : '1',
+        patientId: String(sess.userId || sess.id || '1'),
+        startTime: startDT.toISOString(),
+        endTime: endDT.toISOString(),
+        mode: mode,
+        notes: notes || undefined
+      };
+      
+      const response = await fetch('/api/appointments/book', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      }).catch(() => null);
+      
+      if (response && response.ok) {
+        const result = await response.json();
+        if (result.ok) {
+          showToast(`✓ Appointment booked with ${currentDoctorData.name}`);
+          closeDoctorQuickModal();
+          
+          // Refresh dashboard if available
+          if (window.renderPatientDashboard) window.renderPatientDashboard();
+          
+          dqmBook.disabled = false;
+          dqmBook.textContent = 'Book Appointment';
+          return;
+        }
+      }
+    }
+    
+    // Fallback: localStorage-based booking
+    const appts = load(APPTS_KEY) || [];
+    const users = load(USERS_KEY) || [];
+    const patient = users.find(u => u.username === sess.username);
+    
+    const appt = {
+      id: 'a-' + Date.now(),
+      patient: sess.username,
+      patientName: patient ? patient.name : sess.username,
+      doctorName: currentDoctorData.name,
+      doctorPhone: currentDoctorData.phone || 'N/A',
+      clinic: currentDoctorData.clinic || currentDoctorData.location || 'Clinic',
+      datetime: startDT.toISOString(),
+      startTime: startDT.toISOString(),
+      endTime: endDT.toISOString(),
+      mode: mode,
+      notes: notes,
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    };
+    
+    appts.unshift(appt);
+    save(APPTS_KEY, appts);
+    
+    // Update request status if from MCQ suggestion
+    const lastSuggestion = JSON.parse(sessionStorage.getItem('st_last_suggestion') || 'null');
+    if (lastSuggestion) {
+      const reqs = load(REQS_KEY) || [];
+      const idx = reqs.findIndex(r => 
+        r.patient === sess.username && 
+        r.specialty === currentDoctorData.specialty && 
+        r.status === 'pending'
+      );
+      if (idx >= 0) {
+        reqs[idx].status = 'confirmed';
+        reqs[idx].doctor = currentDoctorData.name;
+        reqs[idx].apptId = appt.id;
+        save(REQS_KEY, reqs);
+      }
+    }
+    
+    showToast(`✓ Booked with ${currentDoctorData.name} — ${startDT.toLocaleString()}`);
+    closeDoctorQuickModal();
+    
+    // Refresh patient dashboard
+    if (window.renderPatientDashboard) window.renderPatientDashboard();
+    
+  } catch (error) {
+    dqmError.textContent = 'Error: ' + error.message;
+    dqmError.style.display = 'block';
+  } finally {
+    dqmBook.disabled = false;
+    dqmBook.textContent = 'Book Appointment';
+  }
+});
 
 function prepareTest(symptom){
   // Exact 10 MCQs as specified in requirements
@@ -923,8 +2204,62 @@ function renderQuestion(){
 }
 function updateProgress(){ const done = testState.answers.filter(a=>a!==null).length, total=testState.questions.length, pct=Math.round((done/total)*100); progressBar.style.width=pct+'%'; progressText.textContent = done + '/' + total; }
 qPrev.addEventListener('click', ()=> { if(testState.idx>0){ testState.idx--; renderQuestion(); }});
-qNext.addEventListener('click', ()=> { if(!testState.answers[testState.idx]) return alert('Please select an option.'); if(testState.idx < testState.questions.length-1){ testState.idx++; renderQuestion(); return; } computeSuggestionAndShow(); });
+qNext.addEventListener('click', ()=> { 
+  if(!testState.answers[testState.idx]) { 
+    setMcqAlert(true); 
+    return; 
+  } 
+  if(testState.idx < testState.questions.length-1){ 
+    testState.idx++; 
+    renderQuestion(); 
+    return; 
+  } 
+  // On last question (Finish button), call computeSuggestionAndShow
+  computeSuggestionAndShow(); 
+});
 qSave.addEventListener('click', ()=> { sessionStorage.setItem('st_test_autosave', JSON.stringify(testState)); alert('Progress saved.'); showPage('page-main-symptom'); document.getElementById('main-sym').value = testState.symptom; symNext.disabled = false; });
+
+/* ---------- Calculate severity based on symptom answers ---------- */
+function calculateSeverity(answers) {
+  let severityScore = 0;
+  
+  // Severe indicators that increase severity
+  const severeIndicators = [
+    // Q1: Location (moderate)
+    answers[0] === 'Chest / breathing / heart' ? 1 : 0,
+    // Q2: Pain type - sharp/stabbing is more severe
+    answers[1] === 'Sharp / stabbing' ? 2 : 0,
+    // Q3: Fever - high fever is severe
+    answers[2] === 'Yes — high fever (>38°C)' ? 2 : 0,
+    // Q4: Skin changes - visible lesion is moderate
+    answers[3] === 'Yes — rash or visible lesion' ? 1 : 0,
+    // Q5: Hearing/voice/swallowing - severe issues
+    answers[4] === 'Yes — hearing loss / ear pain / voice change / difficulty swallowing' ? 1 : 0,
+    // Q6: Breathing/chest - severe/sudden is critical
+    answers[5] === 'Yes — severe or sudden' ? 3 : 0,
+    // Q7: Digestive - severe with blood is critical
+    answers[6] === 'Severe abdominal pain / vomiting / blood' ? 3 : 0,
+    // Q8: Injury - major injury is severe
+    answers[7] === 'Yes — recent fracture/sprain/major injury' ? 2 : 0,
+    // Q9: Mental health - severe is critical
+    answers[8] === 'Severe changes — suicidal thoughts / inability to function' ? 3 : 0,
+    // Q10: Pregnancy related
+    answers[9] === 'Yes / unsure' ? 1 : 0
+  ];
+  
+  severityScore = severeIndicators.reduce((a, b) => a + b, 0);
+  
+  // Determine severity level
+  if (severityScore >= 6) {
+    return 'Critical';
+  } else if (severityScore >= 4) {
+    return 'High';
+  } else if (severityScore >= 2) {
+    return 'Moderate';
+  } else {
+    return 'Low';
+  }
+}
 
 /* ---------- Deterministic scoring algorithm ---------- */
 function mapAnswersToSpecialties(answers) {
@@ -1031,28 +2366,18 @@ function mapAnswersToSpecialties(answers) {
 
 /* ---------- Suggestion and matching (NEW with backend integration) ---------- */
 async function computeSuggestionAndShow(){
-  // Get user location (geolocation or fallback)
-  let userLocation = null;
-  
   try {
-    // Try browser geolocation
-    if (navigator.geolocation) {
-      userLocation = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          position => resolve({lat: position.coords.latitude, lng: position.coords.longitude}),
-          error => {
-            console.warn('Geolocation denied:', error.message);
-            resolve(null);
-          },
-          {timeout: 5000, enableHighAccuracy: false}
-        );
-      });
+    console.log('Starting suggestion computation...');
+    
+    // Disable finish button while processing
+    const qNextBtn = document.getElementById('q-next');
+    if (qNextBtn) {
+      qNextBtn.disabled = true;
+      qNextBtn.textContent = 'Processing...';
     }
-  } catch (error) {
-    console.warn('Geolocation error:', error);
-  }
-  
-  try {
+    
+    console.log('Test answers:', testState.answers);
+    
     // Prepare answers object
     const answersObj = {};
     testState.answers.forEach((ans, idx) => {
@@ -1060,31 +2385,41 @@ async function computeSuggestionAndShow(){
                                    ans === testState.questions[idx].opts[1] ? 'b' : 'c';
     });
     
-    // Call new top-disease endpoint
-    const response = await fetch('http://localhost:8000/api/symptom/top-disease', {
+    console.log('Answers object:', answersObj);
+    
+    // Call backend API for recommendations
+    console.log('Calling backend API...');
+    const response = await fetch('http://localhost:8000/api/symptom-recommendations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        answers: answersObj,
-        location: userLocation
+        patientLocation: { lat: 22.5726, lng: 88.3639 }, // Default Kolkata, can be made dynamic
+        answers: answersObj
       })
     });
     
-    if (!response.ok) throw new Error('Backend unavailable');
+    console.log('Backend response status:', response.status);
+    
+    if (!response.ok) throw new Error(`Backend error: ${response.status}`);
     
     const data = await response.json();
+    console.log('Backend data:', data);
     
-    if (data.ok && data.topDisease) {
-      // Backend returned top disease + doctors
-      displayTopDiseaseResults(data, userLocation);
+    if (data.ok && data.recommendations && data.recommendations.length > 0) {
+      // Backend returned recommendations
+      console.log('Displaying backend recommendations');
+      displayRecommendations(data);
     } else {
-      throw new Error('No disease data');
+      throw new Error('No recommendations from backend');
     }
     
   } catch (error) {
     // Fallback to client-side logic if backend fails
     console.warn('Using client-side fallback:', error.message);
+    console.log('Computing specialties client-side...');
     const specialties = mapAnswersToSpecialties(testState.answers);
+    console.log('Specialties:', specialties);
+    
     const fallbackData = {
       ok: true,
       specialties: specialties,
@@ -1093,7 +2428,16 @@ async function computeSuggestionAndShow(){
         doctors: getDemoDoctors(spec)
       }))
     };
+    console.log('Displaying fallback recommendations');
     displayRecommendations(fallbackData);
+  } finally {
+    // Re-enable finish button
+    const qNextBtn = document.getElementById('q-next');
+    if (qNextBtn) {
+      qNextBtn.disabled = false;
+      qNextBtn.textContent = 'Finish';
+    }
+    console.log('Suggestion computation completed');
   }
 }
 
@@ -1114,147 +2458,33 @@ function getDemoDoctors(specialty) {
   return demoData[specialty] || demoData['GP'];
 }
 
-function displayTopDiseaseResults(data, userLocation) {
-  const disease = data.topDisease;
-  const doctors = data.doctors || [];
-  
-  // Update specialty display with single disease
-  document.getElementById('suggest-specialty').textContent = disease.name;
-  const confidencePercent = Math.round(disease.confidence * 100);
-  document.getElementById('suggest-confidence').textContent = `${confidencePercent}%`;
-  document.getElementById('suggest-sub').textContent = disease.notes;
-  
-  const list = document.getElementById('doctor-list');
-  list.innerHTML = '';
-  
-  // Show location status if applicable
-  if (!userLocation && doctors.length === 0) {
-    const locationMsg = document.createElement('div');
-    locationMsg.style.padding = '16px';
-    locationMsg.style.background = 'rgba(255,200,100,0.1)';
-    locationMsg.style.borderRadius = '12px';
-    locationMsg.style.marginBottom = '12px';
-    locationMsg.style.color = 'var(--muted)';
-    locationMsg.style.fontSize = '13px';
-    locationMsg.innerHTML = '📍 <strong>Location not available</strong><br>Enable location services to see nearby doctors.';
-    list.appendChild(locationMsg);
-  }
-  
-  // Show doctors or no-doctors message
-  if (doctors.length === 0) {
-    const noDoc = document.createElement('div');
-    noDoc.style.padding = '16px';
-    noDoc.style.textAlign = 'center';
-    noDoc.style.color = 'var(--muted)';
-    noDoc.innerHTML = 'No nearby doctors found for this condition.<br>Please consult a General Practitioner.';
-    list.appendChild(noDoc);
-    return;
-  }
-  
-  // Display doctors sorted by distance
-  doctors.forEach((d, index) => {
-    const item = document.createElement('div');
-    item.className = 'doctor-item';
-    item.style.marginBottom = '12px';
-    item.style.padding = '12px';
-    item.style.background = 'rgba(255,255,255,0.02)';
-    item.style.borderRadius = '12px';
-    item.style.border = '1px solid rgba(255,255,255,0.04)';
-    
-    const header = document.createElement('div');
-    header.style.display = 'flex';
-    header.style.gap = '12px';
-    header.style.alignItems = 'center';
-    header.style.marginBottom = '10px';
-    
-    const av = document.createElement('div');
-    av.className = 'doc-avatar';
-    av.textContent = d.name.split(' ').map(n => n[0]).slice(0, 2).join('');
-    
-    const meta = document.createElement('div');
-    meta.style.flex = '1';
-    const name = document.createElement('div');
-    name.className = 'doc-name';
-    name.textContent = `${index + 1}. ${d.name}`;
-    name.style.fontWeight = '700';
-    name.style.fontSize = '16px';
-    
-    const specBadge = document.createElement('div');
-    specBadge.textContent = d.specialty;
-    specBadge.style.fontSize = '11px';
-    specBadge.style.color = 'var(--accent1)';
-    specBadge.style.marginTop = '2px';
-    
-    meta.appendChild(name);
-    meta.appendChild(specBadge);
-    header.appendChild(av);
-    header.appendChild(meta);
-    
-    // Distance badge if available
-    if (d.distance_m !== null && d.distance_m !== undefined) {
-      const distBadge = document.createElement('div');
-      const distKm = (d.distance_m / 1000).toFixed(1);
-      distBadge.textContent = distKm < 1 ? `${d.distance_m}m` : `${distKm}km`;
-      distBadge.style.fontSize = '12px';
-      distBadge.style.fontWeight = '700';
-      distBadge.style.color = 'var(--accent2)';
-      distBadge.style.padding = '4px 8px';
-      distBadge.style.background = 'rgba(182,170,255,0.1)';
-      distBadge.style.borderRadius = '8px';
-      header.appendChild(distBadge);
-    }
-    
-    const contact = document.createElement('div');
-    contact.style.marginBottom = '8px';
-    contact.style.fontSize = '13px';
-    contact.style.color = 'var(--muted)';
-    contact.innerHTML = `📞 ${d.phone}<br>📍 ${d.address}`;
-    
-    const ops = document.createElement('div');
-    ops.style.display = 'flex';
-    ops.style.gap = '8px';
-    ops.style.flexWrap = 'wrap';
-    
-    // Google Maps link button
-    const mapsBtn = document.createElement('a');
-    mapsBtn.className = 'btn ghost';
-    mapsBtn.style.fontSize = '12px';
-    mapsBtn.style.padding = '6px 10px';
-    mapsBtn.textContent = '📍 View on Maps';
-    if (d.google_place_id) {
-      mapsBtn.href = `https://www.google.com/maps/place/?q=place_id:${d.google_place_id}`;
-    } else {
-      mapsBtn.href = `https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lng}`;
-    }
-    mapsBtn.target = '_blank';
-    
-    const callBtn = document.createElement('a');
-    callBtn.className = 'btn ghost';
-    callBtn.style.fontSize = '12px';
-    callBtn.style.padding = '6px 10px';
-    callBtn.textContent = '📞 Call';
-    callBtn.href = `tel:${d.phone}`;
-    
-    ops.appendChild(mapsBtn);
-    ops.appendChild(callBtn);
-    
-    item.appendChild(header);
-    item.appendChild(contact);
-    item.appendChild(ops);
-    list.appendChild(item);
-  });
-  
-  showPage('page-results');
-}
-
 function displayRecommendations(data) {
-  const specialty = data.specialties && data.specialties.length > 0 ? data.specialties.join(', ') : 'General Medicine';
-  const confidence = data.specialties && data.specialties.length >= 2 ? 'High' : 'Medium';
+  // Show only the top/first specialty, not all of them
+  const specialty = data.specialties && data.specialties.length > 0 ? data.specialties[0] : 'General Medicine';
+  const severity = calculateSeverity(testState.answers);
+  
+  console.log('Displaying recommendations for specialty:', specialty, 'severity:', severity);
+  console.log('Data:', data);
   
   document.getElementById('suggest-specialty').textContent = specialty;
-  document.getElementById('suggest-confidence').textContent = confidence;
+  const severityElement = document.getElementById('suggest-confidence');
+  severityElement.textContent = severity;
+  
+  // Apply color class based on severity level
+  severityElement.className = '';
+  if (severity === 'Critical') {
+    severityElement.classList.add('severity-critical');
+  } else if (severity === 'High') {
+    severityElement.classList.add('severity-high');
+  } else if (severity === 'Moderate') {
+    severityElement.classList.add('severity-moderate');
+  } else if (severity === 'Low') {
+    severityElement.classList.add('severity-low');
+  }
+  
   const list = document.getElementById('doctor-list');
   list.innerHTML = '';
+  console.log('Clearing doctor list and starting to populate...');
   
   // Display all recommended doctors from all specialties
   data.recommendations.forEach(rec => {
@@ -1266,6 +2496,28 @@ function displayRecommendations(data) {
       item.style.background = 'rgba(255,255,255,0.02)';
       item.style.borderRadius = '12px';
       item.style.border = '1px solid rgba(255,255,255,0.04)';
+      item.style.cursor = 'pointer';
+      item.style.transition = 'all 0.2s ease';
+      
+      // Make entire card clickable to open modal
+      item.addEventListener('click', (e) => {
+        // Don't trigger if clicking on a button or link
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A') {
+          openDoctorQuickModal(d, rec.specialty);
+        }
+      });
+      
+      item.addEventListener('mouseenter', () => {
+        item.style.transform = 'translateY(-2px)';
+        item.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)';
+        item.style.border = '1px solid rgba(123,97,255,0.2)';
+      });
+      
+      item.addEventListener('mouseleave', () => {
+        item.style.transform = 'none';
+        item.style.boxShadow = 'none';
+        item.style.border = '1px solid rgba(255,255,255,0.04)';
+      });
       
       const header = document.createElement('div');
       header.style.display = 'flex';
@@ -1284,6 +2536,7 @@ function displayRecommendations(data) {
       name.textContent = d.name;
       name.style.fontWeight = '700';
       name.style.fontSize = '16px';
+      name.style.cursor = 'pointer';
       
       const specBadge = document.createElement('div');
       specBadge.textContent = rec.specialty;
@@ -1300,7 +2553,7 @@ function displayRecommendations(data) {
       contact.style.marginBottom = '8px';
       contact.style.fontSize = '13px';
       contact.style.color = 'var(--muted)';
-      contact.innerHTML = `📞 ${d.phone}<br>📍 ${d.address}`;
+      contact.innerHTML = `📞 ${d.phone}<br>📍 ${d.address}, ${d.city}, ${d.state}`;
       
       const ops = document.createElement('div');
       ops.style.display = 'flex';
@@ -1332,7 +2585,11 @@ function displayRecommendations(data) {
       book.style.fontSize = '12px';
       book.style.padding = '6px 10px';
       book.textContent = 'Book Appointment';
-      book.addEventListener('click', () => handleBook(d));
+      book.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('Book button clicked for:', d.name);
+        window.openBookingModal(d, rec.specialty);
+      });
       
       ops.appendChild(mapsBtn);
       ops.appendChild(callBtn);
@@ -1348,12 +2605,14 @@ function displayRecommendations(data) {
   sessionStorage.setItem('st_last_suggestion', JSON.stringify({
     specialty,
     matched: data.recommendations.flatMap(r => r.doctors),
-    confidence,
+    severity,
     symptom: testState.symptom,
     answers: testState.answers
   }));
   
+  console.log('Navigating to suggestions page...');
   showPage('page-suggest');
+  console.log('Recommendations displayed successfully');
 }
 
 /* ---------- Booking ---------- */
@@ -1397,6 +2656,34 @@ document.getElementById('suggest-back')?.addEventListener('click', ()=> showPage
 function showError(container, msg){ container.textContent = msg; container.style.display = 'block'; container.scrollIntoView({behavior:'smooth', block:'center'}); }
 function showToast(msg, ms=2600){ const t = document.getElementById('toast'); t.textContent = msg; t.style.display='block'; t.style.opacity='1'; setTimeout(()=> { t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>{ t.style.display='none'; t.style.transition=''; },420); }, ms); }
 
+// Confirmation modal helper
+function showConfirm(title, message, onConfirm, onCancel) {
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  
+  const okBtn = document.getElementById('confirm-ok-btn');
+  const cancelBtn = document.getElementById('confirm-cancel-btn');
+  
+  // Remove old listeners
+  const newOkBtn = okBtn.cloneNode(true);
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+  
+  document.getElementById('confirm-ok-btn').addEventListener('click', ()=> {
+    modal.style.display = 'none';
+    if(onConfirm) onConfirm();
+  });
+  
+  document.getElementById('confirm-cancel-btn').addEventListener('click', ()=> {
+    modal.style.display = 'none';
+    if(onCancel) onCancel();
+  });
+  
+  modal.style.display = 'flex';
+}
+
 /* ---------- Doctor Dashboard logic (new) ---------- */
 function seedDemoIfEmpty(){
   const reqs = load(REQS_KEY) || [];
@@ -1426,7 +2713,7 @@ function renderDoctorDashboard(){
   document.getElementById('doctor-welcome').textContent = `Welcome, ${user.name || sess.username} ${user.specialty ? '— '+user.specialty : ''}`;
 
   const reqs = (load(REQS_KEY) || []).slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
-  const appts = (load(APPTS_KEY) || []).slice().sort((a,b)=> new Date(a.datetime) - new Date(b.datetime));
+  const appts = (load(APPTS_KEY) || []).filter(a=> a.status !== 'cancelled').slice().sort((a,b)=> new Date(a.datetime) - new Date(b.datetime));
 
   // KPIs
   const pending = reqs.filter(r=> r.status === 'pending').length;
@@ -1466,7 +2753,7 @@ function renderDoctorDashboard(){
     const left = document.createElement('div'); left.innerHTML = `<div style="font-weight:700">${a.patientName}</div><div class="tiny">${new Date(a.datetime).toLocaleString()}</div>`;
     const right = document.createElement('div'); right.style.display='flex'; right.style.gap='8px';
     const call = document.createElement('a'); call.className='btn ghost'; call.textContent='Call'; call.href = 'tel:' + (a.doctorPhone || '');
-    const cancel = document.createElement('button'); cancel.className='btn'; cancel.textContent='Cancel'; cancel.addEventListener('click', ()=> { if(confirm('Cancel appointment?')) { cancelAppointment(a.id); }});
+    const cancel = document.createElement('button'); cancel.className='btn'; cancel.textContent='Cancel'; cancel.addEventListener('click', ()=> { showConfirm('Cancel Appointment', `Are you sure you want to cancel the appointment with ${a.patientName}?`, ()=> cancelAppointment(a.id)); });
     right.appendChild(call); right.appendChild(cancel);
     ap.appendChild(left); ap.appendChild(right);
     al.appendChild(ap);
@@ -1510,8 +2797,20 @@ function renderPatientDashboard(){
   const rps = (user.reports || []);
   const rpscont = document.getElementById('dash-reports'); rpscont.innerHTML = '';
   if(!rps.length) rpscont.innerHTML = '<div class="tiny" style="color:var(--muted)">No reports uploaded (demo).</div>';
+  const fmtSize = (bytes)=>{
+    if(!bytes && bytes!==0) return '';
+    if(bytes < 1024) return `${bytes} B`;
+    if(bytes < 1024*1024) return `${(bytes/1024).toFixed(1)} KB`;
+    return `${(bytes/1024/1024).toFixed(1)} MB`;
+  };
   rps.forEach(rep=>{
-    const el = document.createElement('div'); el.className='timeline-item'; el.textContent = rep;
+    const info = typeof rep === 'string' ? { name: rep } : rep || {};
+    const el = document.createElement('div'); el.className='timeline-item';
+    const added = info.addedAt ? new Date(info.addedAt).toLocaleString() : '';
+    const size = fmtSize(info.size);
+    const meta = [info.type, size, added].filter(Boolean).join(' • ');
+    const downloadLink = info.data ? `<a href="${info.data}" download="${info.name||'report'}" style="color:var(--accent1);text-decoration:none">Download</a>` : '';
+    el.innerHTML = `<div style="font-weight:700">${info.name || 'Report'}</div><div class="tiny" style="color:var(--muted);margin-top:4px">${meta || 'Uploaded file'}</div>${downloadLink ? `<div class="tiny" style="margin-top:6px">${downloadLink}</div>`:''}`;
     rpscont.appendChild(el);
   });
 
@@ -1566,6 +2865,63 @@ function openRequestModal(reqId, openBook = false){
   }
   reqModal.style.display = 'flex';
 }
+
+/* ---------- Report upload (PDF/JPG) ---------- */
+const repInput = document.getElementById('report-file');
+const repChoose = document.getElementById('report-choose');
+const repChosen = document.getElementById('report-chosen');
+const repUpload = document.getElementById('report-upload');
+
+if(repChoose && repInput){
+  repChoose.addEventListener('click', ()=> repInput.click());
+  repInput.addEventListener('change', ()=>{
+    const f = repInput.files && repInput.files[0];
+    if(!f){ repChosen.textContent = 'No file chosen'; return; }
+    repChosen.textContent = `${f.name} (${Math.round(f.size/1024)} KB)`;
+  });
+}
+
+function persistUser(updated){
+  const users = load(USERS_KEY) || [];
+  const idx = users.findIndex(u=> u.username === updated.username);
+  if(idx >= 0) { users[idx] = updated; save(USERS_KEY, users); return true; }
+  return false;
+}
+
+if(repUpload && repInput){
+  repUpload.addEventListener('click', ()=>{
+    const file = repInput.files && repInput.files[0];
+    if(!file){ showToast('Please choose a PDF or JPG'); return; }
+    if(!['application/pdf','image/jpeg','image/png'].includes(file.type)){
+      showToast('Only PDF or JPG/PNG files allowed');
+      return;
+    }
+    const sess = JSON.parse(sessionStorage.getItem('st_session')||'null');
+    if(!sess || sess.role !== 'patient'){ showToast('Please sign in as patient first'); return; }
+    const users = load(USERS_KEY) || [];
+    const user = users.find(u=> u.username === sess.username);
+    if(!user){ showToast('User not found. Please sign in again.'); return; }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const report = {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        data: reader.result,
+        addedAt: new Date().toISOString()
+      };
+      user.reports = user.reports || [];
+      user.reports.push(report);
+      persistUser(user);
+      repInput.value = '';
+      repChosen.textContent = 'No file chosen';
+      showToast('Report uploaded');
+      renderPatientDashboard();
+    };
+    reader.readAsDataURL(file);
+  });
+}
 reqReject.addEventListener('click', ()=> {
   if(!activeRequestId) return;
   const reqs = load(REQS_KEY) || []; const idx = reqs.findIndex(r=> r.id === activeRequestId); if(idx < 0) return;
@@ -1573,6 +2929,22 @@ reqReject.addEventListener('click', ()=> {
 });
 reqAccept.addEventListener('click', ()=> { reqBookForm.style.display = 'block'; });
 bookCancel.addEventListener('click', ()=> { reqBookForm.style.display = 'none'; });
+
+// Enable/disable confirm button based on form validation
+function validateBookingForm() {
+  const dateVal = bookDate.value, timeVal = bookTime.value, endTimeVal = document.getElementById('book-end-time')?.value;
+  const modeVal = document.getElementById('book-mode')?.value;
+  if(dateVal && timeVal && endTimeVal && modeVal) {
+    bookConfirm.disabled = false;
+  } else {
+    bookConfirm.disabled = true;
+  }
+}
+
+bookDate.addEventListener('change', validateBookingForm);
+bookTime.addEventListener('change', validateBookingForm);
+document.getElementById('book-end-time')?.addEventListener?.('change', validateBookingForm);
+document.getElementById('book-mode')?.addEventListener?.('change', validateBookingForm);
 bookConfirm.addEventListener('click', async ()=> {
   if(!activeRequestId && !window.currentBookingRequest) return;
   
@@ -1662,6 +3034,7 @@ bookConfirm.addEventListener('click', async ()=> {
         doctorName: doc ? doc.name : '', 
         doctorPhone: doc ? doc.phone : '', 
         clinic: doc ? (doc.location || '') : '', 
+        datetime: startDT.toISOString(),
         startTime: startDT.toISOString(),
         endTime: endDT.toISOString(),
         mode: mode,
@@ -1693,6 +3066,113 @@ function cancelAppointment(apptId){
 }
 
 /* ---------- Quick dashboard controls ---------- */
+document.getElementById('doctor-back')?.addEventListener('click', ()=> showPage('page-landing'));
+document.getElementById('edit-profile-btn')?.addEventListener('click', ()=> {
+  const sess = JSON.parse(sessionStorage.getItem('st_session')||'null');
+  if(!sess) return;
+  const user = (load(USERS_KEY)||[]).find(u=>u.username===sess.username);
+  if(!user) return;
+  
+  // Pre-fill form with current data
+  document.getElementById('ep-name').value = user.name || '';
+  document.getElementById('ep-specialty').value = user.specialty || '';
+  document.getElementById('ep-phone').value = user.phone || '';
+  document.getElementById('ep-location').value = user.location || '';
+  document.getElementById('ep-password').value = '';
+  document.getElementById('ep-error').style.display = 'none';
+  document.getElementById('ep-success').style.display = 'none';
+  
+  // Set photo preview
+  const photoPreview = document.getElementById('ep-photo-preview');
+  if(user.photo) {
+    photoPreview.style.backgroundImage = `url('${user.photo}')`;
+    photoPreview.style.backgroundSize = 'cover';
+    photoPreview.style.backgroundPosition = 'center';
+    photoPreview.textContent = '';
+  } else {
+    photoPreview.style.backgroundImage = 'none';
+    photoPreview.textContent = '📷';
+  }
+  
+  // Store current user for later use
+  window.currentEditingDoctor = user;
+  
+  showPage('page-doctor-edit-profile');
+});
+
+// Photo upload handler
+document.getElementById('ep-photo-input')?.addEventListener('change', (e)=> {
+  const file = e.target.files[0];
+  if(!file) return;
+  
+  if(!['image/jpeg','image/png','image/gif','image/webp'].includes(file.type)){
+    alert('Only JPG, PNG, GIF, or WebP images allowed');
+    return;
+  }
+  
+  if(file.size > 5 * 1024 * 1024) {
+    alert('File size must be less than 5MB');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = (event)=> {
+    const photoData = event.target.result;
+    const photoPreview = document.getElementById('ep-photo-preview');
+    photoPreview.style.backgroundImage = `url('${photoData}')`;
+    photoPreview.style.backgroundSize = 'cover';
+    photoPreview.style.backgroundPosition = 'center';
+    photoPreview.textContent = '';
+    
+    // Store photo in window for save
+    window.newPhotoData = photoData;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('ep-cancel')?.addEventListener('click', ()=> showPage('page-doctor-dashboard'));
+document.getElementById('ep-save')?.addEventListener('click', ()=> {
+  const epError = document.getElementById('ep-error');
+  const epSuccess = document.getElementById('ep-success');
+  epError.style.display = 'none';
+  epSuccess.style.display = 'none';
+  
+  const name = document.getElementById('ep-name').value.trim();
+  const specialty = document.getElementById('ep-specialty').value;
+  const phone = document.getElementById('ep-phone').value.trim();
+  const location = document.getElementById('ep-location').value.trim();
+  const newPassword = document.getElementById('ep-password').value;
+  
+  if(!name) { epError.textContent = 'Name is required'; epError.style.display='block'; return; }
+  if(!specialty) { epError.textContent = 'Specialty is required'; epError.style.display='block'; return; }
+  if(newPassword && newPassword.length < 6) { epError.textContent = 'Password must be at least 6 characters'; epError.style.display='block'; return; }
+  
+  const sess = JSON.parse(sessionStorage.getItem('st_session')||'null');
+  if(!sess) { epError.textContent = 'Session expired. Please login again'; epError.style.display='block'; return; }
+  
+  const users = load(USERS_KEY) || [];
+  const idx = users.findIndex(u=>u.username===sess.username);
+  if(idx < 0) { epError.textContent = 'User not found'; epError.style.display='block'; return; }
+  
+  users[idx].name = name;
+  users[idx].specialty = specialty;
+  users[idx].phone = phone;
+  users[idx].location = location;
+  if(newPassword) users[idx].password = newPassword;
+  if(window.newPhotoData) {
+    users[idx].photo = window.newPhotoData;
+    window.newPhotoData = null;
+  }
+  
+  save(USERS_KEY, users);
+  epSuccess.textContent = '✓ Profile updated successfully!';
+  epSuccess.style.display = 'block';
+  
+  setTimeout(()=> {
+    showPage('page-doctor-dashboard');
+    renderDoctorDashboard();
+  }, 1500);
+});
 document.getElementById('refresh-dashboard').addEventListener('click', ()=> renderDoctorDashboard());
 document.getElementById('toggle-online').addEventListener('click', function(){ if(this.textContent.includes('Offline')){ this.textContent='Go Online'; showToast('You are now online'); } else { this.textContent='Go Offline'; showToast('You are now offline'); } });
 document.getElementById('doctor-logout').addEventListener('click', ()=> { sessionStorage.removeItem('st_session'); showToast('Logged out'); showPage('page-landing'); });
@@ -1746,8 +3226,10 @@ document.getElementById('open-healthblog').addEventListener('click', ()=> openBl
 document.getElementById('open-sub').addEventListener('click', ()=> openSubscription());
 document.getElementById('open-profile').addEventListener('click', ()=> { alert('Profile editor (demo)'); });
 
-document.getElementById('mini-doctor-login').addEventListener('click', ()=> showPage('page-doctor-login'));
-document.getElementById('mini-doctor-create').addEventListener('click', ()=> showPage('page-doctor-signup'));
+const miniDoctorLogin = document.getElementById('mini-doctor-login');
+const miniDoctorCreate = document.getElementById('mini-doctor-create');
+if(miniDoctorLogin) miniDoctorLogin.addEventListener('click', ()=> showPage('page-doctor-login'));
+if(miniDoctorCreate) miniDoctorCreate.addEventListener('click', ()=> showPage('page-doctor-signup'));
 
 /* ---------- On load: resume session (updated) ---------- */
 window.addEventListener('load', ()=> {

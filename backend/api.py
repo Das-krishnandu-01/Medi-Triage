@@ -367,115 +367,6 @@ class SymptomRecommendationRequest(BaseModel):
     patientLocation: Optional[dict] = None  # {lat, lng}
     answers: dict  # {q1: 'a', q2: 'b', ...}
 
-class TopDiseaseRequest(BaseModel):
-    answers: dict  # {q1: 'a', q2: 'b', ...}
-    location: Optional[dict] = None  # {lat, lng} or null
-
-def map_answers_to_diseases(answers: dict) -> dict:
-    """Deterministic scoring algorithm to map 10 MCQ answers to specific diseases."""
-    scores = {
-        'ACUTE_PHARYNGITIS': 0, 'ACUTE_BRONCHITIS': 0, 'HYPERTENSION': 0,
-        'CONTACT_DERMATITIS': 0, 'OSTEOARTHRITIS': 0, 'MIGRAINE': 0,
-        'GASTROENTERITIS': 0, 'ANXIETY_DISORDER': 0,
-        'URINARY_TRACT_INFECTION': 0, 'GENERAL_MALAISE': 0
-    }
-    # Q1: Location of pain
-    if answers.get('q1') == 'a': scores['ACUTE_PHARYNGITIS'] += 3; scores['MIGRAINE'] += 2
-    elif answers.get('q1') == 'b': scores['ACUTE_BRONCHITIS'] += 3; scores['HYPERTENSION'] += 2
-    elif answers.get('q1') == 'c': scores['OSTEOARTHRITIS'] += 2  # Reduced from 3 to avoid false positives
-    
-    # Q2: Type of pain
-    if answers.get('q2') == 'a': scores['MIGRAINE'] += 2
-    elif answers.get('q2') == 'b': scores['OSTEOARTHRITIS'] += 2; scores['GENERAL_MALAISE'] += 1
-    elif answers.get('q2') == 'c': scores['CONTACT_DERMATITIS'] += 2
-    
-    # Q3: Fever
-    if answers.get('q3') == 'a': scores['URINARY_TRACT_INFECTION'] += 3; scores['ACUTE_PHARYNGITIS'] += 2
-    elif answers.get('q3') == 'b': scores['ACUTE_BRONCHITIS'] += 2; scores['GENERAL_MALAISE'] += 1
-    elif answers.get('q3') == 'c': scores['GENERAL_MALAISE'] += 1  # Added for clarity
-    
-    # Q4: Skin symptoms
-    if answers.get('q4') == 'a': scores['CONTACT_DERMATITIS'] += 3
-    elif answers.get('q4') == 'b': scores['CONTACT_DERMATITIS'] += 2
-    
-    # Q5: ENT symptoms
-    if answers.get('q5') == 'a': scores['ACUTE_PHARYNGITIS'] += 3
-    elif answers.get('q5') == 'b': scores['ACUTE_PHARYNGITIS'] += 2
-    
-    # Q6: Breathing/cardiac
-    if answers.get('q6') == 'a': scores['HYPERTENSION'] += 3; scores['ACUTE_BRONCHITIS'] += 2
-    elif answers.get('q6') == 'b': scores['ACUTE_BRONCHITIS'] += 2
-    
-    # Q7: GI symptoms
-    if answers.get('q7') == 'a': scores['GASTROENTERITIS'] += 3
-    elif answers.get('q7') == 'b': scores['GASTROENTERITIS'] += 2
-    
-    # Q8: Injury
-    if answers.get('q8') == 'a': scores['OSTEOARTHRITIS'] += 3  # Major injury
-    elif answers.get('q8') == 'b': scores['OSTEOARTHRITIS'] += 1
-    
-    # Q9: Mental health
-    if answers.get('q9') == 'a': scores['ANXIETY_DISORDER'] += 3
-    elif answers.get('q9') == 'b': scores['ANXIETY_DISORDER'] += 2
-    
-    # Q10: General wellness
-    if answers.get('q10') == 'a': scores['GENERAL_MALAISE'] += 1
-    
-    return scores
-
-def get_top_disease(answers: dict) -> dict:
-    """Compute single top disease from answers."""
-    disease_info = {
-        'ACUTE_PHARYNGITIS': {'name': 'Acute Pharyngitis', 'specialty': 'ENT', 'notes': 'Throat and upper respiratory symptoms'},
-        'ACUTE_BRONCHITIS': {'name': 'Acute Bronchitis', 'specialty': 'Cardiology', 'notes': 'Chest and breathing symptoms'},
-        'HYPERTENSION': {'name': 'Hypertension Risk', 'specialty': 'Cardiology', 'notes': 'Chest pain and cardiovascular symptoms'},
-        'CONTACT_DERMATITIS': {'name': 'Contact Dermatitis', 'specialty': 'Dermatology', 'notes': 'Skin irritation and rash'},
-        'OSTEOARTHRITIS': {'name': 'Osteoarthritis', 'specialty': 'Orthopedics', 'notes': 'Joint and musculoskeletal pain'},
-        'MIGRAINE': {'name': 'Migraine Headache', 'specialty': 'Neurology', 'notes': 'Head pain and neurological symptoms'},
-        'GASTROENTERITIS': {'name': 'Gastroenteritis', 'specialty': 'Gastroenterology', 'notes': 'Digestive system symptoms'},
-        'ANXIETY_DISORDER': {'name': 'Anxiety Disorder', 'specialty': 'Psychiatry', 'notes': 'Mental health symptoms'},
-        'URINARY_TRACT_INFECTION': {'name': 'Urinary Tract Infection', 'specialty': 'Infectious Diseases', 'notes': 'Fever and infection symptoms'},
-        'GENERAL_MALAISE': {'name': 'General Malaise', 'specialty': 'GP', 'notes': 'General symptoms requiring evaluation'}
-    }
-    priority = ['HYPERTENSION', 'ACUTE_BRONCHITIS', 'URINARY_TRACT_INFECTION', 'MIGRAINE', 'ACUTE_PHARYNGITIS', 'GASTROENTERITIS', 'OSTEOARTHRITIS', 'ANXIETY_DISORDER', 'CONTACT_DERMATITIS', 'GENERAL_MALAISE']
-    scores = map_answers_to_diseases(answers)
-    max_score = max(scores.values())
-    if max_score < 2:
-        return {'code': 'GENERAL_MALAISE', 'name': disease_info['GENERAL_MALAISE']['name'], 'specialty': disease_info['GENERAL_MALAISE']['specialty'], 'confidence': 0.3, 'notes': 'Symptoms unclear - recommend general practitioner evaluation'}
-    top_diseases = [code for code, score in scores.items() if score == max_score]
-    if len(top_diseases) > 1:
-        for disease in priority:
-            if disease in top_diseases:
-                top_disease_code = disease
-                break
-    else:
-        top_disease_code = top_diseases[0]
-    confidence = min(max_score / 10.0, 0.95)
-    info = disease_info[top_disease_code]
-    return {'code': top_disease_code, 'name': info['name'], 'specialty': info['specialty'], 'confidence': round(confidence, 2), 'notes': info['notes']}
-    
-    # If tie, use priority list
-    if len(top_diseases) > 1:
-        for disease in priority:
-            if disease in top_diseases:
-                top_disease_code = disease
-                break
-    else:
-        top_disease_code = top_diseases[0]
-    
-    # Calculate confidence (score / max_possible_score)
-    # Max possible score is ~10 if all questions point to one disease
-    confidence = min(max_score / 10.0, 0.95)
-    
-    info = disease_info[top_disease_code]
-    return {
-        'code': top_disease_code,
-        'name': info['name'],
-        'specialty': info['specialty'],
-        'confidence': round(confidence, 2),
-        'notes': info['notes']
-    }
-
 def map_answers_to_specialties(answers: dict) -> List[str]:
     """
     Deterministic scoring algorithm to map 10 MCQ answers to specialties.
@@ -607,9 +498,30 @@ def get_doctors_for_specialties(specialties: List[str], patient_lat: float = Non
     
     results = {}
     
+    # Specialty mapping for data that uses different names
+    specialty_aliases = {
+        'Obstetrics/Gynecology': 'Gynecology',
+        'GP': 'General Practice',  # Map GP to General Practice
+    }
+    
     for specialty in specialties:
+        # Check if this specialty has an alias in the data
+        lookup_specialty = specialty_aliases.get(specialty, specialty)
+        
         # Filter doctors by specialty (case-insensitive match)
-        matching = [d for d in all_doctors if d.get('specialty', '').lower() == specialty.lower()]
+        matching = [d for d in all_doctors if d.get('specialty', '').lower() == lookup_specialty.lower()]
+        
+        # If no match found and this is GP, show doctors from all specialties sorted by distance
+        # This provides a fallback when GP doctors aren't available
+        if not matching and specialty == 'GP':
+            # For GP requests, show a mix of available doctors (prioritize general specialists)
+            # Take some from each specialty to give variety
+            general_specialties = ['ENT', 'Dermatology', 'Psychiatry']
+            gp_fallback = []
+            for gen_spec in general_specialties:
+                gen_docs = [d for d in all_doctors if d.get('specialty', '').lower() == gen_spec.lower()]
+                gp_fallback.extend(gen_docs[:2])  # Take 2 from each
+            matching = gp_fallback
         
         # If patient location provided, calculate distance and sort
         if patient_lat is not None and patient_lng is not None and matching:
@@ -686,65 +598,4 @@ def symptom_recommendations(data: SymptomRecommendationRequest):
         # Log error but don't expose internal details
         print(f"Error in symptom_recommendations: {str(e)}")
         raise HTTPException(status_code=500, detail="Unable to process recommendations")
-
-@app.post("/api/symptom/top-disease")
-def top_disease_endpoint(data: TopDiseaseRequest):
-    """NEW minimal endpoint: Returns single top disease + nearest doctors sorted by distance."""
-    try:
-        top_disease = get_top_disease(data.answers)
-        print(f"[ANALYTICS] Disease detected: {top_disease['code']}")  # Anonymous logging
-        
-        user_lat = user_lng = None
-        if data.location:
-            user_lat = data.location.get('lat')
-            user_lng = data.location.get('lng')
-        
-        specialty = top_disease['specialty']
-        import json, os
-        doctors_file = os.path.join(os.path.dirname(__file__), 'doctors.json')
-        try:
-            with open(doctors_file, 'r', encoding='utf-8') as f:
-                all_doctors = json.load(f)
-        except:
-            all_doctors = []
-        
-        matching_doctors = [d for d in all_doctors if d.get('specialty', '').lower() == specialty.lower()]
-        doctors_list = []
-        for doc in matching_doctors:
-            if 'lat' not in doc or 'lng' not in doc:
-                continue
-            doc_data = {
-                'name': doc.get('name', 'Unknown'),
-                'specialty': doc.get('specialty', specialty),
-                'phone': doc.get('phone', 'N/A'),
-                'address': doc.get('address', 'Address not available'),
-                'lat': doc['lat'],
-                'lng': doc['lng'],
-                'google_place_id': doc.get('google_place_id', doc.get('place_id', None))
-            }
-            if user_lat is not None and user_lng is not None:
-                distance_km = haversine_distance(user_lat, user_lng, doc['lat'], doc['lng'])
-                doc_data['distance_m'] = int(distance_km * 1000)
-            else:
-                doc_data['distance_m'] = None
-            doctors_list.append(doc_data)
-        
-        if user_lat is not None and user_lng is not None:
-            doctors_list.sort(key=lambda x: x['distance_m'] if x['distance_m'] is not None else float('inf'))
-        
-        doctors_list = doctors_list[:10]
-        return {
-            'ok': True, 
-            'topDisease': {
-                'code': top_disease['code'], 
-                'name': top_disease['name'], 
-                'specialty': top_disease['specialty'],  # Added specialty field
-                'confidence': top_disease['confidence'], 
-                'notes': top_disease['notes']
-            }, 
-            'doctors': doctors_list
-        }
-    except Exception as e:
-        print(f"[ERROR] top-disease endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
 
