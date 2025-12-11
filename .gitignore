@@ -1,0 +1,101 @@
+# --- Python Virtual Environments ---
+.venv/
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# --- Python Cache & Compiled Files ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Database Files ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- ML Models ---
+*.pkl
+*.pickle
+*.joblib
+*.h5
+*.model
+
+# --- IDE & Editor Files ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.classpath
+
+# --- OS Files ---
+Thumbs.db
+.directory
+.AppleDouble
+
+# --- Environment Variables ---
+.env
+.env.local
+.env.*.local
+
+# --- Test & Temporary Files ---
+test_*.ps1
+verify_fix.ps1
+test_*.py
+standalone_booking_api.py
+examples_preview.txt
+validation_report.json
+
+# --- Internal/Temporary Documentation ---
+APPOINTMENT_BOOKING_API.md
+BEFORE_AFTER_COMPARISON.md
+CHANGES_DETAIL.md
+CHANGES_SUMMARY.md
+CODE_REVIEW_CHECKLIST.md
+CONFIRM_BOOKING_FIX.md
+DEPLOYMENT_CHECKLIST.md
+DOCTOR_SIGNUP_DOCUMENTATION.md
+DOCTOR_SIGNUP_SUMMARY.md
+DOCUMENTATION_INDEX.md
+FINAL_SUMMARY.md
+FIX_SUMMARY.md
+GOOGLE_PLACES_AUTOCOMPLETE_GUIDE.md
+GOOGLE_PLACES_IMPLEMENTATION_SUMMARY.md
+GOOGLE_PLACES_IMPLEMENTATION_VALIDATION_CHECKLIST.md
+GOOGLE_PLACES_QUICK_REFERENCE.md
+GOOGLE_PLACES_SETUP.md
+GOOGLE_PLACES_VISUAL_GUIDE.md
+IMPLEMENTATION_COMPLETE.md
+IMPLEMENTATION_SUMMARY.md
+INDEX.md
+NO_API_IMPLEMENTATION.md
+PROJECT_COMPLETION_REPORT.md
+PULL_REQUEST.md
+QA_SYMPTOM_CHECKER.md
+QA_TEST_CHECKLIST.md
+QUICKSTART_STANDALONE.md
+QUICK_COMMANDS.md
+QUICK_REFERENCE.md
+QUICK_SETUP.md
+README_FIX.md
+README_SYMPTOM_CHECKER.md
+SETUP_AND_DEPLOYMENT.md
+STANDALONE_API_README.md
+TESTING_VALIDATION.md
+VISUAL_FLOW_DIAGRAM.md
+VISUAL_REFERENCE_GUIDE.md
+
+# --- Other ---
+app.js
+*.bat (but keep run_local.bat if needed)
+requirements_standalone.txt
+docker-compose.yml (if contains sensitive config)
