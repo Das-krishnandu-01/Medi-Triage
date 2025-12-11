@@ -741,17 +741,12 @@
           </div>
 
           <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
-            <div style="display:flex;gap:8px;">
-              <button type="button" class="btn ghost" id="landing-blog-mini">Blog</button>
-              <button type="button" class="btn ghost" id="landing-sub-mini">Subscribe</button>
-              <button type="button" class="btn ghost" id="landing-doctor-mini" title="Doctor login">I am a Doctor</button>
-            </div>
             <div style="margin-top:8px;color:var(--muted);font-size:13px;">
               Clinician features are hidden from the main patient flow.
             </div>
           </div>
         </div>
-        <p class="tiny" style="margin-top:14px;">Tip: Click Patient to try the flow: signup → main symptom → 10 MCQ → suggested doctors. Use Health Blog to type problem and get quick home tips.</p>
+        <p class="tiny" style="margin-top:14px;">Tip: Click Patient to try the flow: signup → main symptom → 10 MCQ → suggested doctors.</p>
       </section>
 
       <!-- Patient signup -->
@@ -1506,9 +1501,9 @@ document.getElementById('ctrl-theme').addEventListener('click', ()=> {
   localStorage.setItem('st_theme', isLight ? 'light' : 'dark');
   updateThemeButton();
 });
-document.getElementById('landing-blog-mini').addEventListener('click', ()=> openBlog());
+document.getElementById('landing-blog-mini')?.addEventListener('click', ()=> openBlog());
 document.getElementById('ctrl-sub').addEventListener('click', ()=> { openSubscriptionPage(); });
-document.getElementById('landing-sub-mini').addEventListener('click', ()=> { openSubscriptionPage(); });
+document.getElementById('landing-sub-mini')?.addEventListener('click', ()=> { openSubscriptionPage(); });
 
 /* ---------- Avatar / profile click ---------- */
 document.getElementById('ctrl-profile').addEventListener('click', ()=> {
@@ -1521,7 +1516,7 @@ document.getElementById('ctrl-profile').addEventListener('click', ()=> {
 });
 
 /* landing doctor mini also opens doctor login */
-document.getElementById('landing-doctor-mini').addEventListener('click', ()=> showPage('page-doctor-login'));
+document.getElementById('landing-doctor-mini')?.addEventListener('click', ()=> showPage('page-doctor-login'));
 
 /* ---------- Blog modal ---------- */
 const blogModal = document.getElementById('blog-modal'), blogProblem = document.getElementById('blog-problem'), blogResult = document.getElementById('blog-result');
