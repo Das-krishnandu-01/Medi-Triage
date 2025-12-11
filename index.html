@@ -632,6 +632,73 @@
       height: 60%;
     }
   }
+
+  /* Subscription page */
+  .sub-container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .sub-center {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .sub-center h2 {
+    font-size: 2rem;
+    margin: 0 0 10px;
+  }
+  .sub-center .tiny {
+    color: var(--muted);
+  }
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    align-items: stretch;
+  }
+  .plan-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 22px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+    border-color: rgba(123, 97, 255, 0.35);
+  }
+  .plan-card.featured {
+    background: linear-gradient(180deg, rgba(123, 97, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid var(--accent1);
+    box-shadow: 0 0 24px rgba(123, 97, 255, 0.15);
+  }
+  .plan-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent1);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 5px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.6px;
+    box-shadow: 0 4px 12px rgba(123,97,255,0.4);
+  }
+  .plan-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .plan-price { font-size: 36px; font-weight: 800; margin-bottom: 6px; }
+  .plan-price span { font-size: 15px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .plan-features { list-style: none; padding: 0; margin: 18px 0 24px; text-align: left; }
+  .plan-features li { padding: 8px 0; color: var(--muted); font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; align-items: center; gap: 8px; }
+  .plan-features li:last-child { border-bottom: none; }
+  .plan-features li strong { color: #e6eef8; font-weight: 600; }
+  .sub-back-row { text-align: center; margin-top: 18px; }
 </style>
 </head>
 <body>
@@ -752,7 +819,6 @@
             </div>
           </div>
           <div class="patient-right">
-            <button class="btn ghost" id="open-healthblog">Health Blog</button>
             <button class="btn ghost" id="open-sub">Subscription</button>
             <button class="btn ghost" id="open-profile">Profile</button>
             <button class="btn ghost" id="toggle-theme-dash">Theme</button>
@@ -809,16 +875,6 @@
                 </div>
 
                 <div>
-                  <div class="panel" id="panel-blog">
-                    <h3>Health Blog — AI Suggestions</h3>
-                    <div class="tiny" style="margin-top:8px;color:var(--muted)">Type problem and get quick tips</div>
-                    <div style="margin-top:8px">
-                      <div class="field"><input id="dash-blog-input" placeholder="e.g., headache since morning"></div>
-                      <div style="display:flex;gap:8px"><button class="btn primary" id="dash-blog-submit">Get Suggestion</button><button class="btn ghost" id="dash-blog-clear">Clear</button></div>
-                      <div id="dash-blog-result" class="tiny" style="margin-top:8px;color:var(--muted)"></div>
-                    </div>
-                  </div>
-
                   <div class="panel" style="margin-top:12px" id="panel-saved-doctors">
                     <h3>Saved Doctors</h3>
                     <div id="dash-saved-doctors" style="margin-top:8px"></div>
@@ -827,14 +883,6 @@
                   <div class="panel" style="margin-top:12px" id="panel-notifications">
                     <h3>Notifications</h3>
                     <div id="dash-notifs" style="margin-top:8px"></div>
-                  </div>
-
-                  <div class="panel" style="margin-top:12px" id="panel-symptom-checker">
-                    <h3>Quick Symptom Checker</h3>
-                    <div style="margin-top:8px">
-                      <div class="field"><input id="quick-sym" placeholder="Type main symptom (fever, chest pain)"></div>
-                      <div style="display:flex;gap:8px"><button class="btn primary" id="quick-sym-start">Start Test</button></div>
-                    </div>
                   </div>
 
                 </div>
@@ -857,10 +905,62 @@
         <!-- bottom nav (mobile) -->
         <div class="bottom-nav" role="navigation" aria-label="Bottom navigation">
           <button class="b-item" id="nav-home">Home</button>
-          <button class="b-item" id="nav-blog">Blog</button>
           <button class="b-item" id="nav-appts">Appointments</button>
           <button class="b-item" id="nav-reports">Reports</button>
           <button class="b-item" id="nav-profile">Profile</button>
+        </div>
+      </section>
+
+      <!-- Subscription page -->
+      <section id="page-subscription" class="page">
+        <div class="sub-container">
+          <div class="sub-center">
+            <h2>Upgrade to Medi+</h2>
+            <p class="tiny">Faster care, smart insights, and family protection.</p>
+          </div>
+
+          <div class="plan-grid">
+            <div class="plan-card" id="plan-basic">
+              <div class="plan-name">Basic</div>
+              <div class="plan-price">Free</div>
+              <ul class="plan-features">
+                <li>🩺 Symptom Checker</li>
+                <li>👨‍⚕️ Standard Doctor Booking</li>
+                <li>📝 Local Health History</li>
+                <li>❌ No AI Assistant</li>
+              </ul>
+              <button class="btn ghost" style="width:100%" id="sub-basic-btn">Current Plan</button>
+            </div>
+
+            <div class="plan-card featured" id="plan-gold">
+              <div class="plan-badge">Most Popular</div>
+              <div class="plan-name">Gold Member</div>
+              <div class="plan-price">₹199<span>/mo</span></div>
+              <ul class="plan-features">
+                <li>⚡ <strong>Priority Triage</strong> (Top of List)</li>
+                <li>🤖 <strong>Unlimited</strong> AI Chat</li>
+                <li>📂 Cloud Report Storage</li>
+                <li>🔔 Medicine Reminders</li>
+              </ul>
+              <button class="btn primary" style="width:100%" id="sub-gold-btn">Upgrade to Gold</button>
+            </div>
+
+            <div class="plan-card" id="plan-family">
+              <div class="plan-name">Family Shield</div>
+              <div class="plan-price">₹499<span>/mo</span></div>
+              <ul class="plan-features">
+                <li>👨‍👩‍👧‍👦 <strong>Up to 4 Members</strong></li>
+                <li>🆘 One-Click Emergency</li>
+                <li>🩸 Home Lab Collection</li>
+                <li>📞 24/7 Doctor Helpline</li>
+              </ul>
+              <button class="btn ghost" style="width:100%" id="sub-family-btn">Upgrade to Family</button>
+            </div>
+          </div>
+
+          <div class="sub-back-row">
+            <button class="btn ghost" id="sub-back-btn">Back to Dashboard</button>
+          </div>
         </div>
       </section>
 
@@ -1379,7 +1479,7 @@
 
 <script>
 /* ---------- Storage helpers ---------- */
-const USERS_KEY = 'st_users', REQS_KEY = 'st_requests', APPTS_KEY = 'st_appts', TIMELINE_KEY = 'st_timeline';
+const USERS_KEY = 'st_users', REQS_KEY = 'st_requests', APPTS_KEY = 'st_appts', TIMELINE_KEY = 'st_timeline', SUB_KEY = 'st_subscription';
 function load(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){return null;} }
 function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
 if(!load(USERS_KEY)) save(USERS_KEY, []);
@@ -1407,8 +1507,8 @@ document.getElementById('ctrl-theme').addEventListener('click', ()=> {
   updateThemeButton();
 });
 document.getElementById('landing-blog-mini').addEventListener('click', ()=> openBlog());
-document.getElementById('ctrl-sub').addEventListener('click', ()=> { showToast('Open Subscription (top right).'); openSubscription(); });
-document.getElementById('landing-sub-mini').addEventListener('click', ()=> { showToast('Subscription feature coming soon!'); openSubscription(); });
+document.getElementById('ctrl-sub').addEventListener('click', ()=> { openSubscriptionPage(); });
+document.getElementById('landing-sub-mini').addEventListener('click', ()=> { openSubscriptionPage(); });
 
 /* ---------- Avatar / profile click ---------- */
 document.getElementById('ctrl-profile').addEventListener('click', ()=> {
@@ -1449,8 +1549,53 @@ function handleBlogSubmit(){
   blogResult.innerHTML = `<div style="margin-bottom:8px">${suggestion}</div>`;
 }
 
-/* subscription quick open (reuses blog modal) */
-function openSubscription(){ openBlog(); blogProblem.value = ''; blogResult.innerHTML = `<div class="tiny">Enter your email at the bottom of this page to subscribe (this demo uses localStorage).</div>`; }
+/* ---------- Subscription page ---------- */
+function getCurrentPlan(){
+  const stored = load(SUB_KEY) || null;
+  return stored?.plan || 'Basic';
+}
+
+function subscribePlan(plan){
+  const prices = { 'Basic': 'Free', 'Gold Member': '₹199/mo', 'Family Shield': '₹499/mo' };
+  save(SUB_KEY, { plan, price: prices[plan] || 'Free', since: new Date().toISOString() });
+  showToast(`Subscribed to ${plan}!`);
+  renderSubscriptionPage();
+}
+
+function renderSubscriptionPage(){
+  const plan = getCurrentPlan();
+  const basicBtn = document.getElementById('sub-basic-btn');
+  const goldBtn = document.getElementById('sub-gold-btn');
+  const familyBtn = document.getElementById('sub-family-btn');
+
+  if(basicBtn){
+    basicBtn.textContent = plan === 'Basic' ? 'Current Plan' : 'Switch to Basic';
+    basicBtn.disabled = plan === 'Basic';
+  }
+  if(goldBtn){
+    goldBtn.textContent = plan === 'Gold Member' ? 'Current Plan' : 'Upgrade to Gold';
+    goldBtn.disabled = plan === 'Gold Member';
+  }
+  if(familyBtn){
+    familyBtn.textContent = plan === 'Family Shield' ? 'Current Plan' : 'Upgrade to Family';
+    familyBtn.disabled = plan === 'Family Shield';
+  }
+}
+
+function openSubscriptionPage(){
+  renderSubscriptionPage();
+  showPage('page-subscription');
+}
+
+function goBackFromSub(){
+  const sess = JSON.parse(sessionStorage.getItem('st_session')||'null');
+  if(sess && sess.role === 'patient') {
+    renderPatientDashboard();
+    showPage('page-patient-dashboard');
+  } else {
+    showPage('page-landing');
+  }
+}
 
 /* ---------- Pages & navigation ---------- */
 const pages = {
@@ -1464,6 +1609,7 @@ const pages = {
   'page-suggest': document.getElementById('page-suggest'),
   'page-doctor-dashboard': document.getElementById('page-doctor-dashboard'),
   'page-patient-dashboard': document.getElementById('page-patient-dashboard'),
+  'page-subscription': document.getElementById('page-subscription'),
   'page-doctor-edit-profile': document.getElementById('page-doctor-edit-profile')
 };
 function showPage(id){
@@ -2083,6 +2229,12 @@ function initBookingModal() {
       
       // Close modal
       closeBookingModal();
+
+      // Redirect to patient dashboard and refresh view
+      if (typeof renderPatientDashboard === 'function') {
+        renderPatientDashboard();
+      }
+      showPage('page-patient-dashboard');
       
       // Reset button
       bmBook.disabled = false;
@@ -2311,8 +2463,9 @@ dqmBook.addEventListener('click', async () => {
           showToast(`✓ Appointment booked with ${currentDoctorData.name}`);
           closeDoctorQuickModal();
           
-          // Refresh dashboard if available
+          // Refresh dashboard if available and redirect
           if (window.renderPatientDashboard) window.renderPatientDashboard();
+          showPage('page-patient-dashboard');
           
           dqmBook.disabled = false;
           dqmBook.textContent = 'Book Appointment';
@@ -2365,8 +2518,9 @@ dqmBook.addEventListener('click', async () => {
     showToast(`✓ Booked with ${currentDoctorData.name} — ${startDT.toLocaleString()}`);
     closeDoctorQuickModal();
     
-    // Refresh patient dashboard
+    // Refresh patient dashboard and redirect
     if (window.renderPatientDashboard) window.renderPatientDashboard();
+    showPage('page-patient-dashboard');
     
   } catch (error) {
     dqmError.textContent = 'Error: ' + error.message;
@@ -3503,15 +3657,6 @@ function handleChatSubmit() {
 }
 
 /* ---------- Patient dashboard interactions ---------- */
-document.getElementById('dash-blog-submit').addEventListener('click', ()=> {
-  const v = (document.getElementById('dash-blog-input').value||'').trim();
-  if(!v) return alert('Type a problem');
-  // reuse blog suggestion logic:
-  blogProblem.value = v; handleBlogSubmit();
-  document.getElementById('dash-blog-result').innerHTML = blogResult.innerHTML;
-});
-document.getElementById('dash-blog-clear').addEventListener('click', ()=> { document.getElementById('dash-blog-input').value=''; document.getElementById('dash-blog-result').innerHTML=''; });
-
 document.getElementById('timeline-add').addEventListener('click', ()=> {
   const txt = (document.getElementById('timeline-note').value||'').trim();
   if(!txt) return alert('Add a note');
@@ -3539,16 +3684,20 @@ document.getElementById('dash-new-request').addEventListener('click', ()=> {
   renderPatientDashboard();
 });
 
+/* Subscription handlers */
+document.getElementById('sub-gold-btn')?.addEventListener('click', ()=> subscribePlan('Gold Member'));
+document.getElementById('sub-family-btn')?.addEventListener('click', ()=> subscribePlan('Family Shield'));
+document.getElementById('sub-basic-btn')?.addEventListener('click', ()=> subscribePlan('Basic'));
+document.getElementById('sub-back-btn')?.addEventListener('click', goBackFromSub);
+
 /* bottom nav */
 document.getElementById('nav-home').addEventListener('click', ()=> renderPatientDashboard());
-document.getElementById('nav-blog').addEventListener('click', ()=> openBlog());
 document.getElementById('nav-appts').addEventListener('click', ()=> { showPage('page-patient-dashboard'); document.getElementById('nav-appts').blur(); });
 document.getElementById('nav-reports').addEventListener('click', ()=> { showPage('page-patient-dashboard'); });
 document.getElementById('nav-profile').addEventListener('click', ()=> { showPage('page-patient-dashboard'); });
 
 /* small shortcuts */
-document.getElementById('open-healthblog').addEventListener('click', ()=> openBlog());
-document.getElementById('open-sub').addEventListener('click', ()=> openSubscription());
+document.getElementById('open-sub').addEventListener('click', ()=> openSubscriptionPage());
 document.getElementById('open-profile').addEventListener('click', ()=> { alert('Profile editor (demo)'); });
 
 const miniDoctorLogin = document.getElementById('mini-doctor-login');
