@@ -6,16 +6,45 @@
 <title>Medi Triage — Gmail Signup</title>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-  :root{ --bg:#0f1724; --muted:#9aa7c0; --danger:#ef4444; --accent1: #7b61ff; --accent2: #06f; }
-  html,body{height:100%; margin:0; background:
-    radial-gradient(1200px 600px at 10% 10%, rgba(123,97,255,0.06), transparent),
-    linear-gradient(180deg,#071026 0%, #07162a 100%); color:#e6eef8; font-family:Inter,system-ui,Arial,Helvetica,sans-serif;}
-  html.light-mode, html.light-mode body{ --bg: #f7fafc; --muted: #475569; --danger: #dc2626; }
-  html.light-mode body{ background: linear-gradient(180deg,#ffffff 0%, #f1f5f9 100%); color:#0b1220; }
+  /* --- 1. Define Variables (Default Dark Mode) --- */
+  :root{
+    --bg: #0f1724;
+    --text: #e6eef8;
+    --card-bg: rgba(255,255,255,0.02);
+    --card-border: rgba(255,255,255,0.05);
+    --btn-bg: rgba(255,255,255,0.05);
+    --btn-text: #9aa7c0;
+    --muted:#9aa7c0;
+    --danger:#ef4444;
+    --accent1: #7b61ff;
+    --accent2: #06f;
+  }
+
+  /* --- 2. Define Light Mode Overrides --- */
+  html.light-mode {
+    --bg: #f8fafc;
+    --text: #0f172a;
+    --card-bg: #ffffff;
+    --card-border: #cbd5e1;
+    --btn-bg: #ffffff;
+    --btn-text: #475569;
+    --muted: #475569;
+    --danger: #dc2626;
+  }
+
+  /* --- 3. Apply Variables & Transitions --- */
+  html,body{
+    height:100%;
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s ease, color 0.3s ease;
+    font-family:Inter,system-ui,Arial,Helvetica,sans-serif;
+  }
 
   .app{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:28px;}
-  .card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.05); border-radius:18px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); padding:22px; max-width:1100px; width:100%; position:relative;}
-  html.light-mode .card{ background: #ffffff; border:1px solid rgba(2,6,23,0.08); box-shadow: 0 6px 30px rgba(15,23,42,0.12); color:#0b1220; }
+  .card{background: var(--card-bg); border: 1px solid var(--card-border); border-radius:18px; box-shadow: 0 6px 30px rgba(2,6,23,0.6); padding:22px; max-width:1100px; width:100%; position:relative; transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;}
+  html.light-mode .card{ box-shadow: 0 6px 30px rgba(15,23,42,0.12); }
 
   .brand-row{ display:flex; gap:12px; align-items:center; margin-bottom:8px; }
   .logo{ width:56px; height:56px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:26px; background:linear-gradient(90deg,var(--accent2),var(--accent1)); color:white; overflow:hidden; }
